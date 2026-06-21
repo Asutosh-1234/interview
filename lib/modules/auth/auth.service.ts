@@ -120,4 +120,5 @@ const loginUser = async (payload: unknown) => {
 export {
   createUser,
   loginUser,
+  verifyToken,
 };

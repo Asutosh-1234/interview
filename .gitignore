@@ -41,3 +41,5 @@ yarn-error.log*
 next-env.d.ts
 
 /generated/prisma
+task_desc.md
+AI_Interview_Simulator_Intern_Task.docx
