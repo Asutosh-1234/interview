@@ -12,4 +12,8 @@ export interface CreateUserPayload {
   password: string;
 }
 
+export interface LoginUserPayload {
+  email: string;
+  password: string;
+}
 
