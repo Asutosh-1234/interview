@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           Int         @id @default(autoincrement())
+  name         String
+  email        String      @unique
+  password     String
+  refreshToken String
+  expiry_date  DateTime
+  role         Role        @default(USER)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  userInputs   userInput[]
+}
+
+model userInput {
+  id                Int           @id @default(autoincrement())
+  jobTitle          String
+  techStack         String[]      @default([])
+  role              Role          @default(USER)
+  difficulty        Level         @default(Junior)
+  yearsOfExperience Int           @default(0)
+  interviewType     InterviewType @default(Technical)
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  answers   Answers[]
+}
+
+model Answers {
+  id            Int    @id @default(autoincrement())
+  answer        String @db.Text
+  questionIndex Int
+
+  userInputId Int
+  userInput   userInput @relation(fields: [userInputId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  USER
+  ADMIN
+  SUPERADMIN
+}
+
+enum InterviewType {
+  Behavioral
+  Technical
+  System
+  Design
+  Mixed
+}
+
+enum Level {
+  Fresher
+  Junior
+  Mid
+  Senior
+}
