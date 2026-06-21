@@ -57,7 +57,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md bg-slate-900/40 border border-slate-800/80 backdrop-blur-xl rounded-2xl p-8 shadow-2xl z-10 flex flex-col gap-6">
         {/* Title and Subtitle */}
         <div className="text-center flex flex-col gap-2">
-          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-extrabold tracking-tight bg-linear-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
             Welcome Back
           </h1>
           <p className="text-sm text-slate-400">
