@@ -1,8 +1,8 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import type { DecodedUser, LoginUserPayload } from "./auth.type";
-import { zodVerify } from "../common/zodVeryfication";
-import prisma from "../db/prisma";
+import { zodVerify } from "../../common/zodVeryfication";
+import prisma from "../../db/prisma";
 import { createUserDto, loginUserDto } from "./auth.dto";
 
 
