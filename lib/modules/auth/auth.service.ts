@@ -4,14 +4,15 @@ import type { DecodedUser, LoginUserPayload } from "./auth.type";
 import { zodVerify } from "../../common/zodVeryfication";
 import prisma from "../../db/prisma";
 import { createUserDto, loginUserDto } from "./auth.dto";
+import ENV from "../../common/env";
 
 
 const generateTokens = (payload: DecodedUser) => {
-  const accessToken = jwt.sign(payload, process.env.JWT_SECRET!, {
+  const accessToken = jwt.sign(payload, ENV.JWT_SECRET, {
     expiresIn: "15m",
   });
 
-  const refreshToken = jwt.sign({ email: payload.email }, process.env.JWT_SECRET!, {
+  const refreshToken = jwt.sign({ email: payload.email }, ENV.JWT_SECRET, {
     expiresIn: "7d",
   });
 
@@ -24,7 +25,7 @@ const hashPassword = async (password: string) => {
 
 const verifyToken = async (token: string) => {
   try {
-    return jwt.verify(token, process.env.JWT_SECRET!) as DecodedUser;
+    return jwt.verify(token, ENV.JWT_SECRET) as DecodedUser;
   } catch (error) {
     throw new Error("Invalid token");
   }
@@ -73,7 +74,15 @@ const createUser = async (payload: unknown) => {
     },
   });
 
-  return { user, accessToken };
+  return {
+    user: {
+      id: user.id,
+      role: user.role,
+      email: user.email,
+      name: user.name,
+    },
+    accessToken
+  };
 };
 
 const loginUser = async (payload: unknown) => {
@@ -113,7 +122,15 @@ const loginUser = async (payload: unknown) => {
     },
   });
 
-  return { user: updatedUser, accessToken };
+  return {
+    user: {
+      id: updatedUser.id,
+      role: updatedUser.role,
+      email: updatedUser.email,
+      name: updatedUser.name,
+    },
+    accessToken
+  };
 };
 
 
