@@ -6,10 +6,10 @@ export const Footer: React.FC = () => {
       <div className="flex flex-col md:flex-row justify-between items-center px-6 gap-4 max-w-7xl mx-auto text-center md:text-left">
         <div className="flex flex-col md:flex-row items-center gap-4">
           <span className="font-sans text-lg font-bold tracking-tighter text-slate-100">
-            Royal Black AI
+            AI Interview Bot
           </span>
           <span className="font-sans text-xs text-slate-500">
-            © {new Date().getFullYear()} Royal Black AI. All rights reserved.
+            © {new Date().getFullYear()} AI Interview Bot. All rights reserved.
           </span>
         </div>
         <div className="flex flex-wrap justify-center gap-6">
