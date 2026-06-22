@@ -43,7 +43,7 @@ export const Header: React.FC = () => {
         {/* Logo */}
         <div className="flex items-center gap-8">
           <Link href="/dashboard" className="font-sans text-xl font-bold tracking-tighter text-slate-100 hover:opacity-90 select-none">
-            Royal Black
+            AI Interview Bot
           </Link>
           <div className="hidden md:flex gap-6">
             {navLinks.map((link) => {
