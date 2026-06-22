@@ -36,7 +36,7 @@ Use integer scores only (1-10) — no decimals. Do not include any other markdow
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: ENV.REVIEW_MODEL,
       contents: prompt,
       config: {
         responseMimeType: "application/json",

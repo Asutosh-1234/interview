@@ -40,6 +40,8 @@ export async function submitSetupAction(formData: FormData) {
   const difficulty = formData.get("difficulty") as Level;
   const questionsCountRaw = formData.get("questionsCount");
   const questionsCount = questionsCountRaw ? Number(questionsCountRaw) : 5;
+  const timerDurationRaw = formData.get("timerDuration");
+  const timerDuration = timerDurationRaw ? Number(timerDurationRaw) : 0;
   
   // For techStack, parse it from JSON string
   const techStackRaw = formData.get("techStack") as string;
@@ -68,5 +70,5 @@ export async function submitSetupAction(formData: FormData) {
     redirect(`/setup?error=${encodeURIComponent(errorMsg)}`);
   }
   
-  redirect(`/interview?currentSetupId=${setup.id}&questionsCount=${questionsCount}&jobTitle=${encodeURIComponent(jobTitle)}&companyName=${encodeURIComponent(companyName)}`);
+  redirect(`/interview?currentSetupId=${setup.id}&questionsCount=${questionsCount}&jobTitle=${encodeURIComponent(jobTitle)}&companyName=${encodeURIComponent(companyName)}&timerDuration=${timerDuration}`);
 }

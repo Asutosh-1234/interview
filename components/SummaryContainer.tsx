@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { jsPDF } from "jspdf";
 
 interface AnswerData {
   id: number;
@@ -148,6 +149,133 @@ export const SummaryContainer: React.FC<SummaryContainerProps> = ({ setup, initi
     verdictColor = "text-slate-400 bg-slate-500/10 border-slate-500/30 animate-pulse";
   }
 
+  // Save session details to localStorage history when polling completes
+  useEffect(() => {
+    if (hasPendingReviews || isPolling) return;
+
+    try {
+      const stored = localStorage.getItem("ai_interview_history");
+      let historyList = [];
+      if (stored) {
+        historyList = JSON.parse(stored);
+      }
+
+      // Avoid duplicates
+      if (!historyList.some((item: any) => item.id === setup.id)) {
+        const sessionPayload = {
+          id: setup.id,
+          jobTitle: setup.jobTitle,
+          interviewType: setup.interviewType,
+          averageScore: averageScore,
+          verdict: verdictLabel,
+          totalQuestions: setup.questionsCount,
+          answeredCount,
+          skippedCount,
+          date: new Date().toISOString()
+        };
+        historyList.push(sessionPayload);
+        localStorage.setItem("ai_interview_history", JSON.stringify(historyList));
+      }
+    } catch (e) {
+      console.error("Failed to save session to localStorage history:", e);
+    }
+  }, [hasPendingReviews, isPolling, setup.id, averageScore, verdictLabel, answeredCount, skippedCount, setup.jobTitle, setup.interviewType, setup.questionsCount]);
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+
+    // Cover Title Header
+    doc.setFillColor(30, 41, 59); // slate-800
+    doc.rect(0, 0, 210, 40, "F");
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont("helvetica", "bold");
+    doc.text("AI INTERVIEW SIMULATOR REPORT", 14, 26);
+
+    // Metadata Details
+    doc.setTextColor(51, 65, 85); // slate-700
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Job Role: ${setup.jobTitle}`, 14, 52);
+    doc.text(`Interview Type: ${setup.interviewType}`, 14, 58);
+    doc.text(`Date Generated: ${new Date().toLocaleDateString()}`, 14, 64);
+    if (setup.companyName) {
+      doc.text(`Target Company: ${setup.companyName}`, 14, 70);
+    }
+
+    // Dashboard score card on the right
+    doc.setFillColor(241, 245, 249); // slate-100
+    doc.roundedRect(140, 48, 56, 26, 3, 3, "F");
+    
+    doc.setTextColor(15, 23, 42); // slate-900
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text(`${averageScore} / 10`, 146, 60);
+    
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(71, 85, 105); // slate-600
+    doc.text(`Verdict: ${verdictLabel}`, 146, 68);
+
+    let yPos = 82;
+
+    // Loop through questions history
+    history.forEach((item, idx) => {
+      // Check page bounds
+      if (yPos > 240) {
+        doc.addPage();
+        yPos = 20;
+      }
+
+      // Draw separation line
+      doc.setDrawColor(226, 232, 240); // slate-200
+      doc.line(14, yPos, 196, yPos);
+      yPos += 8;
+
+      // Question Text
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(15, 23, 42);
+      const qLines = doc.splitTextToSize(`Q${idx + 1}: ${item.questionText}`, 180);
+      doc.text(qLines, 14, yPos);
+      yPos += (qLines.length * 5) + 2;
+
+      // Candidate Answer
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(71, 85, 105);
+      const aLines = doc.splitTextToSize(`Your Answer: ${item.answerText}`, 180);
+      doc.text(aLines, 14, yPos);
+      yPos += (aLines.length * 5) + 3;
+
+      // Feedback Details
+      if (item.feedback) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8.5);
+        
+        doc.setTextColor(16, 185, 129); // emerald-500
+        const strengthLines = doc.splitTextToSize(`Strength: ${item.feedback.strengths}`, 180);
+        doc.text(strengthLines, 14, yPos);
+        yPos += (strengthLines.length * 4.5) + 1;
+
+        doc.setTextColor(217, 119, 6); // amber-600
+        const improvementLines = doc.splitTextToSize(`Improvement: ${item.feedback.improvements}`, 180);
+        doc.text(improvementLines, 14, yPos);
+        yPos += (improvementLines.length * 4.5) + 1;
+
+        doc.setTextColor(14, 165, 233); // sky-500
+        const hintLines = doc.splitTextToSize(`Ideal Hint: ${item.feedback.model_answer_hint}`, 180);
+        doc.text(hintLines, 14, yPos);
+        yPos += (hintLines.length * 4.5) + 6;
+      } else {
+        yPos += 3;
+      }
+    });
+
+    doc.save(`AI-Interview-Report-${setup.id}.pdf`);
+  };
+
   return (
     <div className="w-full max-w-3xl flex flex-col gap-6 z-10 my-8">
       {/* Title */}
@@ -226,7 +354,7 @@ export const SummaryContainer: React.FC<SummaryContainerProps> = ({ setup, initi
                     Skipped
                   </span>
                 ) : item.isPending ? (
-                  <span className="px-2 py-0.5 text-[10px] font-semibold text-violet-400 bg-violet-500/10 border border-violet-500/30 rounded-md animate-pulse">
+                  <span className="px-2 py-0.5 text-[10px] font-semibold text-violet-400 bg-violet-500/10 border-violet-500/30 rounded-md animate-pulse">
                     Reviewing...
                   </span>
                 ) : (
@@ -317,10 +445,19 @@ export const SummaryContainer: React.FC<SummaryContainerProps> = ({ setup, initi
         ))}
       </div>
 
+      {/* PDF Export Action */}
+      <button
+        onClick={handleExportPDF}
+        disabled={isPolling}
+        className="w-full mt-4 py-3.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-slate-100 font-bold rounded-xl border border-slate-800 hover:border-slate-700 active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer"
+      >
+        📥 Export Report as PDF
+      </button>
+
       {/* Restart Action */}
       <Link
         href="/setup"
-        className="w-full mt-2 py-3.5 bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-violet-600/10 active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2 text-center"
+        className="w-full py-3.5 bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-violet-600/10 active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2 text-center"
       >
         Configure New Interview Session
       </Link>

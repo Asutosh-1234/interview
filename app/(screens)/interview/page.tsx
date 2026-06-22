@@ -5,11 +5,12 @@ import prisma from "@/lib/db/prisma";
 import { InterviewContainer } from "@/components/InterviewContainer";
 
 interface PageProps {
-  searchParams: Promise<{ currentSetupId?: string }>;
+  searchParams: Promise<{ currentSetupId?: string; timerDuration?: string }>;
 }
 
 export default async function InterviewPage({ searchParams }: PageProps) {
-  const { currentSetupId } = await searchParams;
+  const { currentSetupId, timerDuration } = await searchParams;
+  const timerSecs = timerDuration ? parseInt(timerDuration) : 0;
 
   if (!currentSetupId) {
     redirect("/setup");
@@ -67,6 +68,7 @@ export default async function InterviewPage({ searchParams }: PageProps) {
     yearsOfExperience: setup.yearsOfExperience,
     interviewType: setup.interviewType,
     questions: setup.questions,
+    timerDuration: timerSecs,
   };
 
   return (

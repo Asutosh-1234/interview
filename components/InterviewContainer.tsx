@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ProgressBar } from "./ProgressBar";
 
@@ -14,6 +14,7 @@ interface SetupProps {
   yearsOfExperience: number;
   interviewType: string;
   questions: string[];
+  timerDuration: number;
 }
 
 interface InterviewContainerProps {
@@ -33,6 +34,12 @@ export const InterviewContainer: React.FC<InterviewContainerProps> = ({ setup })
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [timeLeft, setTimeLeft] = useState<number>(setup.timerDuration);
+
+  const answerRef = useRef(answer);
+  useEffect(() => {
+    answerRef.current = answer;
+  }, [answer]);
 
   const wordCount = answer.trim() === "" ? 0 : answer.trim().split(/\s+/).length;
   const isQuestionLoaded = currentQuestionText.length > 0;
@@ -191,6 +198,58 @@ export const InterviewContainer: React.FC<InterviewContainerProps> = ({ setup })
     }
   };
 
+  const handleTimeExpired = async () => {
+    const currentAnswer = answerRef.current;
+    setError("Time expired! Submitting answer...");
+    setIsSubmitting(true);
+
+    try {
+      const isSkipped = currentAnswer.trim() === "";
+      const res = await fetch(`/api/setup/${setup.id}/answers`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          questionIndex: currentQuestionIndex,
+          answer: isSkipped ? "Skipped" : currentAnswer.trim(),
+          skipped: isSkipped,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to auto-submit.");
+      }
+
+      handleNextQuestion();
+    } catch (err) {
+      console.error(err);
+      handleNextQuestion();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Timer Countdown Effect
+  useEffect(() => {
+    if (setup.timerDuration <= 0 || isStreaming || isSubmitting) return;
+
+    setTimeLeft(setup.timerDuration);
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          handleTimeExpired();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [currentQuestionIndex, isStreaming, isSubmitting, setup.timerDuration]);
+
   const handleNextQuestion = () => {
     if (currentQuestionIndex + 1 >= setup.questionsCount) {
       // Completed last question, redirect to summary
@@ -219,9 +278,20 @@ export const InterviewContainer: React.FC<InterviewContainerProps> = ({ setup })
               </p>
             )}
           </div>
-          <span className="px-3 py-1 text-xs font-semibold rounded-full bg-linear-to-r from-violet-500/10 to-indigo-500/10 border border-violet-500/20 text-violet-400 tracking-wide uppercase">
-            {setup.interviewType}
-          </span>
+          <div className="flex flex-col items-end gap-2">
+            <span className="px-3 py-1 text-xs font-semibold rounded-full bg-linear-to-r from-violet-500/10 to-indigo-500/10 border border-violet-500/20 text-violet-400 tracking-wide uppercase">
+              {setup.interviewType}
+            </span>
+            {setup.timerDuration > 0 && !isStreaming && !isSubmitting && (
+              <span className={`px-2.5 py-1 text-xs font-bold rounded-lg border flex items-center gap-1.5 ${
+                timeLeft <= 15 
+                  ? "text-red-400 bg-red-500/10 border-red-500/30 animate-pulse" 
+                  : "text-amber-400 bg-amber-500/10 border-amber-500/30"
+              }`}>
+                ⏱️ {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, "0")}
+              </span>
+            )}
+          </div>
         </div>
         
         {/* Progress Bar */}
