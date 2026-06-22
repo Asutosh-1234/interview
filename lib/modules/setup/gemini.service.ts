@@ -23,7 +23,7 @@ export async function questionGeneration(config: CreateSetupPayload) {
   } = verifiedData.data;
 
   const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
+    model: ENV.QUESTION_MODEL,
     contents: `You are an expert technical interviewer. Generate a list of customized interview questions based on the following candidate configuration: 
     - Job Role / Title: ${jobTitle}
     - Target Experience Level: ${difficulty} (${yearsOfExperience} years of experience)
@@ -115,9 +115,49 @@ Respond with ONLY the text of the next question. Do not include any formatting, 
   }
 
   const responseStream = await ai.models.generateContentStream({
-    model: "gemini-2.5-flash",
+    model: ENV.QUESTION_MODEL,
     contents: prompt,
   });
 
   return responseStream;
+}
+
+export async function generateQuestionTips(questionText: string): Promise<string[]> {
+  const prompt = `
+You are an expert technical interviewer.
+Given the following interview question, provide 3 short, helpful hint chips (tips) for the candidate on how to approach answering it.
+Each hint must be very brief (under 8 words).
+
+Question: ${questionText}
+
+Respond strictly in JSON format matching this structure:
+{
+  "tips": [
+    "First tip",
+    "Second tip",
+    "Third tip"
+  ]
+}
+Do not include any other markdown formatting, code block markers, or explanation.
+`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: ENV.QUESTION_MODEL,
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+      },
+    });
+
+    if (response && response.text) {
+      const parsed = JSON.parse(response.text.trim());
+      if (Array.isArray(parsed.tips)) {
+        return parsed.tips.slice(0, 3).map((tip: string) => tip.trim());
+      }
+    }
+  } catch (e) {
+    console.error("Failed to generate tips:", e);
+  }
+  return ["Think about structure", "Give real-world examples", "Keep it concise"];
 }

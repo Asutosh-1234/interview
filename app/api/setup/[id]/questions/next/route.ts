@@ -62,11 +62,9 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     }
 
     // Safely parse body parameters
-    let answer = "";
     let questionIndex = 0;
     try {
       const body = await req.json();
-      answer = body.answer || "";
       questionIndex = typeof body.questionIndex === "number" ? body.questionIndex : 0;
     } catch (e) {
       // Body may be empty or missing for first question
@@ -74,48 +72,6 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
     if (questionIndex < 0) {
       return NextResponse.json({ error: "Invalid questionIndex" }, { status: 400 });
-    }
-
-    // If questionIndex > 0, we must save the answer to the PREVIOUS question (questionIndex - 1)
-    if (questionIndex > 0) {
-      if (!answer.trim()) {
-        return NextResponse.json({ error: "Answer is required to proceed" }, { status: 400 });
-      }
-
-      const prevQuestionIndex = questionIndex - 1;
-      const questionText = setup.questions[prevQuestionIndex];
-
-      if (!questionText) {
-        return NextResponse.json({ error: "Previous question text not found" }, { status: 400 });
-      }
-
-      // 1. Save answer to database
-      const existingAnswer = await prisma.answers.findFirst({
-        where: {
-          userInputId: setupId,
-          questionIndex: prevQuestionIndex,
-        },
-      });
-
-      if (existingAnswer) {
-        await prisma.answers.update({
-          where: { id: existingAnswer.id },
-          data: { answer },
-        });
-      } else {
-        await prisma.answers.create({
-          data: {
-            userInputId: setupId,
-            questionIndex: prevQuestionIndex,
-            answer,
-          },
-        });
-      }
-
-      // 2. Trigger AI Review in the background meanwhile (concurrently)
-      reviewAnswerAndSave(setupId, prevQuestionIndex, questionText, answer).catch((err) => {
-        console.error("Failed to run AI answer evaluation in background:", err);
-      });
     }
 
     // Build history for dynamic adaptive prompt

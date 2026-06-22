@@ -9,7 +9,7 @@ export async function reviewAnswerAndSave(
   questionIndex: number,
   questionText: string,
   answerText: string
-): Promise<void> {
+): Promise<any> {
   const prompt = `
 You are an expert technical interviewer.
 Evaluate the candidate's answer to the following question.
@@ -17,14 +17,22 @@ Evaluate the candidate's answer to the following question.
 Question: ${questionText}
 Candidate's Answer: ${answerText}
 
-Provide constructive feedback and rate the answer on a scale from 0 to 10.
+Act as a strict but fair interviewer. Evaluate the candidate's answer against the question.
+Provide scores out of 10 and concise comments.
 Respond strictly in JSON format matching this structure:
 {
-  "feedback": "Your detailed feedback and suggestions for improvement.",
-  "score": 8
+  "overall": 8,
+  "clarity": 7,
+  "depth": 8,
+  "relevance": 9,
+  "strengths": "One sentence on what was done well.",
+  "improvements": "One sentence on what to improve.",
+  "model_answer_hint": "One sentence hinting at the ideal answer approach."
 }
-Do not include any other markdown formatting, code block markers, or explanation.
+Use integer scores only (1-10) — no decimals. Do not include any other markdown formatting, code block markers, or explanation.
 `;
+
+  let evaluation: any = null;
 
   try {
     const response = await ai.models.generateContent({
@@ -40,8 +48,25 @@ Do not include any other markdown formatting, code block markers, or explanation
     }
 
     const parsed = JSON.parse(response.text.trim());
-    const feedback = parsed.feedback || "Answer evaluated.";
-    const score = typeof parsed.score === "number" ? parsed.score : null;
+    const overall = typeof parsed.overall === "number" ? parsed.overall : 0;
+    const clarity = typeof parsed.clarity === "number" ? parsed.clarity : 0;
+    const depth = typeof parsed.depth === "number" ? parsed.depth : 0;
+    const relevance = typeof parsed.relevance === "number" ? parsed.relevance : 0;
+    const strengths = parsed.strengths || "Answer submitted.";
+    const improvements = parsed.improvements || "No specific improvements suggested.";
+    const model_answer_hint = parsed.model_answer_hint || parsed.hint || "No hint available.";
+
+    evaluation = {
+      overall,
+      clarity,
+      depth,
+      relevance,
+      strengths,
+      improvements,
+      model_answer_hint
+    };
+
+    const feedbackStr = JSON.stringify(evaluation);
 
     // Find if the answer record already exists
     const existingAnswer = await prisma.answers.findFirst({
@@ -55,8 +80,8 @@ Do not include any other markdown formatting, code block markers, or explanation
       await prisma.answers.update({
         where: { id: existingAnswer.id },
         data: {
-          feedback,
-          score,
+          feedback: feedbackStr,
+          score: overall,
         },
       });
     } else {
@@ -65,14 +90,25 @@ Do not include any other markdown formatting, code block markers, or explanation
           userInputId: setupId,
           questionIndex: questionIndex,
           answer: answerText,
-          feedback,
-          score,
+          feedback: feedbackStr,
+          score: overall,
         },
       });
     }
   } catch (error) {
-    console.error("Error in background reviewAnswerAndSave:", error);
+    console.error("Error in reviewAnswerAndSave:", error);
     // Persist a fallback placeholder review in case of failure so the database record is created
+    evaluation = {
+      overall: 0,
+      clarity: 0,
+      depth: 0,
+      relevance: 0,
+      strengths: "Evaluation failed to run successfully.",
+      improvements: "Please check your connection and configuration.",
+      model_answer_hint: "Review evaluation failed."
+    };
+    const feedbackStr = JSON.stringify(evaluation);
+
     try {
       const existingAnswer = await prisma.answers.findFirst({
         where: {
@@ -81,14 +117,22 @@ Do not include any other markdown formatting, code block markers, or explanation
         },
       });
 
-      if (!existingAnswer) {
+      if (existingAnswer) {
+        await prisma.answers.update({
+          where: { id: existingAnswer.id },
+          data: {
+            feedback: feedbackStr,
+            score: 0,
+          },
+        });
+      } else {
         await prisma.answers.create({
           data: {
             userInputId: setupId,
             questionIndex: questionIndex,
             answer: answerText,
-            feedback: "Review evaluation failed. The answer has been saved.",
-            score: null,
+            feedback: feedbackStr,
+            score: 0,
           },
         });
       }
@@ -96,4 +140,6 @@ Do not include any other markdown formatting, code block markers, or explanation
       console.error("Failed to save fallback review to database:", dbErr);
     }
   }
+
+  return evaluation;
 }
