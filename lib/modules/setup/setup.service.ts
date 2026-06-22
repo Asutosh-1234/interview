@@ -9,7 +9,7 @@ export const createSetup = async (payload: CreateSetupPayload) => {
     throw new Error(result.error?.issues.map((err) => err.message).join(", "));
   }
 
-  const { jobTitle, techStack, difficulty, yearsOfExperience, interviewType, userId } = result.data;
+  const { jobTitle, companyName, questionsCount, techStack, difficulty, yearsOfExperience, interviewType, userId } = result.data;
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -21,6 +21,8 @@ export const createSetup = async (payload: CreateSetupPayload) => {
   const setup = await prisma.userInput.create({
     data: {
       jobTitle,
+      companyName,
+      questionsCount,
       techStack,
       difficulty,
       yearsOfExperience,

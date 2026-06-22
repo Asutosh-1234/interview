@@ -67,6 +67,7 @@ export async function questionGeneration(config: CreateSetupPayload) {
 
 export async function generateNextQuestionStream(config: {
   jobTitle: string;
+  companyName?: string;
   techStack: string[];
   difficulty: string;
   yearsOfExperience: number;
@@ -75,17 +76,18 @@ export async function generateNextQuestionStream(config: {
   history: { question: string; answer: string }[];
 }) {
   let prompt = "";
+  const companyInfo = config.companyName ? `- Target Company: ${config.companyName}\n` : "";
 
   if (config.questionIndex === 0) {
     prompt = `
 You are an expert technical interviewer.
 Generate the first interview question for the candidate based on their setup:
 - Job Title: ${config.jobTitle}
-- Target Experience Level: ${config.difficulty} (${config.yearsOfExperience} years of experience)
+${companyInfo}- Target Experience Level: ${config.difficulty} (${config.yearsOfExperience} years of experience)
 - Interview Type: ${config.interviewType}
 - Tech Stack / Topics: ${config.techStack.join(", ") || "General software development"}
 
-Generate Question #1.
+Generate Question #1. If a target company is specified, tailor the question style and scenarios to fit that company's engineering standards.
 Respond with ONLY the text of the question. Do not include any formatting, markdown, intro, or conversational filler.
 `;
   } else {
@@ -99,7 +101,7 @@ Generate the next adaptive interview question for the candidate based on their s
 
 Candidate Setup:
 - Job Title: ${config.jobTitle}
-- Target Experience Level: ${config.difficulty} (${config.yearsOfExperience} years of experience)
+${companyInfo}- Target Experience Level: ${config.difficulty} (${config.yearsOfExperience} years of experience)
 - Interview Type: ${config.interviewType}
 - Tech Stack / Topics: ${config.techStack.join(", ") || "General software development"}
 
@@ -107,7 +109,7 @@ Interview History:
 ${historyText}
 
 Based on the candidate's previous responses, generate Question #${config.questionIndex + 1}.
-Adapt to their answers: go deeper into a topic if they answered well, ask a follow-up to clarify, or pivot to another relevant skill if needed.
+Adapt to their answers: go deeper into a topic if they answered well, ask a follow-up to clarify, or pivot to another relevant skill if needed. If a target company is specified, keep questions aligned with that company's focus area.
 Respond with ONLY the text of the next question. Do not include any formatting, markdown, intro, or conversational filler.
 `;
   }

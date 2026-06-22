@@ -1,5 +1,4 @@
 import React from "react";
-import Form from "next/form";
 import { Level, InterviewType } from "@/generated/prisma/enums";
 import { FormInput } from "./ui/FormInput";
 import { FormSelect } from "./ui/FormSelect";
@@ -45,7 +44,7 @@ export const SetupForm: React.FC<SetupFormProps> = ({ error }) => {
         </div>
       )}
 
-      <Form action={submitSetupAction} className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <form action={submitSetupAction} className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Job Role */}
         <FormInput
           label="Job Role / Title"
@@ -96,7 +95,7 @@ export const SetupForm: React.FC<SetupFormProps> = ({ error }) => {
 
         {/* Submit Button */}
         <SubmitButton />
-      </Form>
+      </form>
     </div>
   );
 };

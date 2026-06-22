@@ -132,6 +132,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     // Trigger next question streaming
     const responseStream = await generateNextQuestionStream({
       jobTitle: setup.jobTitle,
+      companyName: setup.companyName || undefined,
       techStack: setup.techStack,
       difficulty: setup.difficulty,
       yearsOfExperience: setup.yearsOfExperience,

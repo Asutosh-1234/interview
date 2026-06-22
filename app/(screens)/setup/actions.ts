@@ -43,6 +43,7 @@ export async function submitSetupAction(formData: FormData) {
   
   // For techStack, parse it from JSON string
   const techStackRaw = formData.get("techStack") as string;
+  console.log(techStackRaw)
   let techStack: string[] = [];
   try {
     techStack = techStackRaw ? JSON.parse(techStackRaw) : [];
@@ -54,6 +55,7 @@ export async function submitSetupAction(formData: FormData) {
   try {
     setup = await createSetup({
       jobTitle,
+      companyName: companyName || undefined,
       techStack,
       difficulty,
       yearsOfExperience,
@@ -65,7 +67,6 @@ export async function submitSetupAction(formData: FormData) {
     const errorMsg = error.message || "Failed to create setup";
     redirect(`/setup?error=${encodeURIComponent(errorMsg)}`);
   }
-
-  // 5. Redirect to interview screen with query parameters
+  
   redirect(`/interview?currentSetupId=${setup.id}&questionsCount=${questionsCount}&jobTitle=${encodeURIComponent(jobTitle)}&companyName=${encodeURIComponent(companyName)}`);
 }

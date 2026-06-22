@@ -28,6 +28,8 @@ model User {
 model userInput {
   id                Int           @id @default(autoincrement())
   jobTitle          String
+  companyName       String?
+  questionsCount    Int           @default(5)
   techStack         String[]      @default([])
   role              Role          @default(USER)
   difficulty        Level         @default(Junior)
