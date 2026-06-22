@@ -1,8 +1,9 @@
 import prisma from "../../db/prisma";
 import { createSetupDto } from "./setup.dto";
 import { zodVerify } from "../../common/zodVeryfication";
+import { CreateSetupPayload } from "./setup.type";
 
-export const createSetup = async (payload: unknown) => {
+export const createSetup = async (payload: CreateSetupPayload) => {
   const result = zodVerify(createSetupDto, payload);
   if (!result.success) {
     throw new Error(result.error?.issues.map((err) => err.message).join(", "));
@@ -10,7 +11,6 @@ export const createSetup = async (payload: unknown) => {
 
   const { jobTitle, techStack, difficulty, yearsOfExperience, interviewType, userId } = result.data;
 
-  // Verify that the user exists
   const user = await prisma.user.findUnique({
     where: { id: userId },
   });

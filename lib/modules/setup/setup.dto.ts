@@ -8,4 +8,5 @@ export const createSetupDto = z.object({
   yearsOfExperience: z.number().int().min(0).default(0),
   interviewType: z.enum(InterviewType).default(InterviewType.Technical),
   userId: z.number().int(),
+  questionsCount: z.number().int().min(0).default(0),
 });

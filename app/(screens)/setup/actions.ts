@@ -59,6 +59,7 @@ export async function submitSetupAction(formData: FormData) {
       yearsOfExperience,
       interviewType,
       userId: user.id,
+      questionsCount,
     });
   } catch (error: any) {
     const errorMsg = error.message || "Failed to create setup";

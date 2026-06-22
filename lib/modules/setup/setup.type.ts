@@ -7,4 +7,5 @@ export interface CreateSetupPayload {
   yearsOfExperience: number;
   interviewType: InterviewType;
   userId: number;
+  questionsCount: number;
 }

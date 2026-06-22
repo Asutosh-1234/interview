@@ -33,6 +33,7 @@ model userInput {
   difficulty        Level         @default(Junior)
   yearsOfExperience Int           @default(0)
   interviewType     InterviewType @default(Technical)
+  questions         String[]      @default([])
 
   userId Int
   user   User @relation(fields: [userId], references: [id])
@@ -43,9 +44,11 @@ model userInput {
 }
 
 model Answers {
-  id            Int    @id @default(autoincrement())
-  answer        String @db.Text
+  id            Int     @id @default(autoincrement())
+  answer        String  @db.Text
   questionIndex Int
+  feedback      String? @db.Text
+  score         Int?
 
   userInputId Int
   userInput   userInput @relation(fields: [userInputId], references: [id])

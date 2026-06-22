@@ -9,7 +9,7 @@ import ENV from "../../common/env";
 
 const generateTokens = (payload: DecodedUser) => {
   const accessToken = jwt.sign(payload, ENV.JWT_SECRET, {
-    expiresIn: "15m",
+    expiresIn: "7d",
   });
 
   const refreshToken = jwt.sign({ email: payload.email }, ENV.JWT_SECRET, {

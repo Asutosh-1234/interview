@@ -2,16 +2,26 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/lib/modules/auth/auth.service";
 import { createSetup } from "@/lib/modules/setup/setup.service";
 import prisma from "@/lib/db/prisma";
+import { cookies } from "next/headers";
 
 export async function POST(req: NextRequest) {
   try {
-    // 1. Resolve Authorization Header
+    // 1. Resolve Token (from Authorization header or auth cookie)
+    let token = "";
     const authHeader = req.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Missing or invalid authorization header" }, { status: 401 });
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      token = authHeader.split(" ")[1];
+    } else {
+      const cookieStore = await cookies();
+      const cookieToken = cookieStore.get("auth")?.value;
+      if (cookieToken) {
+        token = cookieToken;
+      }
     }
 
-    const token = authHeader.split(" ")[1];
+    if (!token) {
+      return NextResponse.json({ error: "Missing or invalid authentication" }, { status: 401 });
+    }
     
     // 2. Verify JWT token
     const decoded = await verifyToken(token);
