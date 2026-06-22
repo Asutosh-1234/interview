@@ -2,6 +2,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { verifyToken } from "@/lib/modules/auth/auth.service";
 import prisma from "@/lib/db/prisma";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { SummaryContainer } from "@/components/SummaryContainer";
 
 interface PageProps {
@@ -102,12 +104,17 @@ export default async function SummaryPage({ searchParams }: PageProps) {
   });
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-start p-6 relative overflow-y-auto">
-      {/* Background shapes */}
-      <div className="absolute top-[-25%] left-[-15%] w-[700px] h-[700px] rounded-full bg-violet-600/5 blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-[-25%] right-[-15%] w-[700px] h-[700px] rounded-full bg-indigo-600/5 blur-[140px] pointer-events-none" />
-
-      <SummaryContainer setup={formattedSetup} initialAnswers={formattedAnswers} />
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between relative overflow-x-hidden">
+      {/* Ambient background element */}
+      <div className="ambient-glow" />
+      
+      <Header />
+      
+      <main className="flex-grow flex items-center justify-center px-6 py-16">
+        <SummaryContainer setup={formattedSetup} initialAnswers={formattedAnswers} />
+      </main>
+      
+      <Footer />
     </div>
   );
 }

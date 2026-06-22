@@ -29,7 +29,7 @@ export const ThemeToggle: React.FC = () => {
     <button
       onClick={toggleTheme}
       aria-label="Toggle Theme"
-      className="fixed top-6 right-6 z-50 p-3 rounded-xl bg-slate-900/40 light:bg-white/80 border border-slate-800/80 light:border-slate-200/80 backdrop-blur-xl shadow-2xl hover:bg-slate-800/60 light:hover:bg-slate-50 text-slate-300 light:text-slate-700 cursor-pointer active:scale-95 transition-all duration-200 flex items-center justify-center"
+      className="p-1.5 rounded-lg border border-slate-850 dark:border-slate-800 text-slate-400 hover:text-slate-100 hover:bg-slate-900/60 cursor-pointer active:scale-95 transition-all duration-150 flex items-center justify-center"
     >
       {theme === "dark" ? (
         // Sun Icon
@@ -38,7 +38,7 @@ export const ThemeToggle: React.FC = () => {
         </svg>
       ) : (
         // Moon Icon
-        <svg className="w-5 h-5 text-indigo-500 animate-fade-in" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-5 h-5 text-indigo-400 animate-fade-in" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
         </svg>
       )}

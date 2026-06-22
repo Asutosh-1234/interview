@@ -16,10 +16,10 @@ export const QuestionsRangeInput: React.FC<QuestionsRangeInputProps> = ({
   return (
     <div className="flex flex-col gap-3 md:col-span-2 mt-2">
       <div className="flex justify-between items-center">
-        <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
           Number of Questions
         </label>
-        <span className="text-sm font-bold text-violet-400 bg-violet-600/10 border border-violet-500/25 px-2.5 py-0.5 rounded-full">
+        <span className="text-xs font-bold text-slate-950 bg-slate-100 px-3 py-1 rounded-full shadow-[0px_0px_10px_rgba(255,255,255,0.15)] dark:shadow-[0px_0px_10px_rgba(255,255,255,0.08)] select-none">
           {value} Questions
         </span>
       </div>
@@ -30,9 +30,9 @@ export const QuestionsRangeInput: React.FC<QuestionsRangeInputProps> = ({
         max={10}
         value={value}
         onChange={(e) => setValue(parseInt(e.target.value))}
-        className="w-full accent-violet-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg appearance-none"
+        className="w-full h-[2px] bg-slate-850 dark:bg-slate-800 accent-slate-100 rounded-lg appearance-none cursor-pointer"
       />
-      <div className="flex justify-between text-[10px] font-semibold text-slate-500 uppercase tracking-wider px-1">
+      <div className="flex justify-between text-[9px] font-bold text-slate-500 uppercase tracking-widest px-0.5">
         <span>3 Min</span>
         <span>5 Standard</span>
         <span>10 Max</span>

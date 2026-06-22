@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -50,24 +51,26 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Decorative blurred background shapes */}
-      <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-violet-600/10 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-indigo-600/10 blur-[120px] pointer-events-none" />
+      <div className="fixed top-6 right-6 z-50">
+        <ThemeToggle />
+      </div>
+      {/* Ambient background element */}
+      <div className="ambient-glow" />
 
-      <div className="w-full max-w-md bg-slate-900/40 border border-slate-800/80 backdrop-blur-xl rounded-2xl p-8 shadow-2xl z-10 flex flex-col gap-6">
+      <div className="w-full max-w-md glass-panel rounded-xl p-8 z-10 flex flex-col gap-6 animate-slide-in">
         {/* Title and Subtitle */}
-        <div className="text-center flex flex-col gap-2">
-          <h1 className="text-3xl font-extrabold tracking-tight bg-linear-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
+        <div className="text-center flex flex-col gap-1.5">
+          <h1 className="text-2xl font-bold tracking-tighter text-slate-100">
             Welcome Back
           </h1>
-          <p className="text-sm text-slate-400">
+          <p className="text-xs text-slate-400">
             Sign in to start practicing your AI interview
           </p>
         </div>
 
         {/* Error Alert Box */}
         {error && (
-          <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl backdrop-blur-sm animate-shake">
+          <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-xs px-4 py-3 rounded-lg backdrop-blur-sm">
             {error}
           </div>
         )}
@@ -75,7 +78,7 @@ export default function LoginPage() {
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
               Email Address
             </label>
             <input
@@ -84,12 +87,12 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               required
-              className="w-full px-4 py-3 bg-slate-950/60 border border-slate-800/80 rounded-xl focus:outline-none focus:border-violet-500 text-slate-100 placeholder-slate-600 transition-all duration-200"
+              className="w-full px-4 py-3 bg-slate-950/60 dark:bg-black/40 border border-slate-850 dark:border-slate-800/80 rounded-lg focus:outline-none focus:border-slate-100 text-slate-100 placeholder-slate-600 transition-all duration-200 text-sm"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
               Password
             </label>
             <div className="relative">
@@ -99,12 +102,12 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                className="w-full pl-4 pr-12 py-3 bg-slate-950/60 border border-slate-800/80 rounded-xl focus:outline-none focus:border-violet-500 text-slate-100 placeholder-slate-600 transition-all duration-200"
+                className="w-full pl-4 pr-12 py-3 bg-slate-950/60 dark:bg-black/40 border border-slate-850 dark:border-slate-800/80 rounded-lg focus:outline-none focus:border-slate-100 text-slate-100 placeholder-slate-600 transition-all duration-200 text-sm"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 text-xs font-medium cursor-pointer"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-100 text-xs font-semibold cursor-pointer select-none"
               >
                 {showPassword ? "Hide" : "Show"}
               </button>
@@ -115,10 +118,10 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 py-3 bg-violet-600 hover:bg-violet-500 disabled:bg-violet-800 disabled:text-slate-400 text-white font-semibold rounded-xl shadow-lg shadow-violet-600/10 active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full mt-2 py-3.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-950 font-bold rounded-lg hover:shadow-[0px_0px_15px_rgba(255,255,255,0.2)] dark:hover:shadow-[0px_0px_15px_rgba(255,255,255,0.15)] active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
           >
             {loading ? (
-              <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <span className="w-4 h-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
             ) : (
               "Sign In"
             )}
@@ -126,11 +129,11 @@ export default function LoginPage() {
         </form>
 
         {/* Signup redirection link */}
-        <div className="text-center text-sm text-slate-400 mt-2">
+        <div className="text-center text-xs text-slate-450 mt-1">
           Don&apos;t have an account?{" "}
           <Link
             href="/signup"
-            className="font-medium text-violet-400 hover:text-violet-300 underline underline-offset-4 decoration-violet-500/30 hover:decoration-violet-400 transition-colors"
+            className="font-semibold text-slate-200 hover:text-slate-100 underline underline-offset-4 transition-colors"
           >
             Create an account
           </Link>

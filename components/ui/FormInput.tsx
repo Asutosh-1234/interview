@@ -35,7 +35,7 @@ export const FormInput: React.FC<FormInputProps> = ({
     required,
     min,
     max,
-    className: "w-full px-4 py-3 bg-slate-950/60 border border-slate-800/80 rounded-xl focus:outline-none focus:border-violet-500 text-slate-100 placeholder-slate-600 transition-all duration-200"
+    className: "w-full px-4 py-3 bg-slate-950/60 dark:bg-black/40 border border-slate-850 dark:border-slate-800/80 rounded-lg focus:outline-none focus:border-slate-100 text-slate-100 placeholder-slate-600 transition-all duration-200 text-sm"
   };
 
   if (value !== undefined) {
@@ -54,7 +54,7 @@ export const FormInput: React.FC<FormInputProps> = ({
 
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
-      <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
         {label} {required && "*"}
       </label>
       <input {...inputProps} />

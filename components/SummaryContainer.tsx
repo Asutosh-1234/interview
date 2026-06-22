@@ -277,92 +277,91 @@ export const SummaryContainer: React.FC<SummaryContainerProps> = ({ setup, initi
   };
 
   return (
-    <div className="w-full max-w-3xl flex flex-col gap-6 z-10 my-8">
+    <div className="w-full max-w-[800px] flex flex-col gap-6 z-10 my-8 animate-slide-in">
       {/* Title */}
-      <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-3 text-center sm:text-left">
+      <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-4 text-center sm:text-left border-b border-slate-850 dark:border-slate-800/80 pb-6">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight bg-linear-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
+            Interview Session Analysis
+          </span>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tighter text-slate-100 uppercase">
             Interview Summary Report
           </h1>
-          <p className="text-sm text-slate-400">
-            {setup.jobTitle} simulator session metrics
+          <p className="text-xs text-slate-450 mt-1">
+            A detailed breakdown of your performance during the {setup.jobTitle} {setup.interviewType} interview.
           </p>
         </div>
         {isPolling && (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-xs text-violet-400 font-semibold animate-pulse">
-            <span className="w-2 h-2 rounded-full bg-violet-500 animate-ping" />
-            AI is analyzing responses...
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-850 dark:border-slate-800 text-[10px] text-slate-350 font-bold animate-pulse tracking-wide select-none">
+            <span className="w-1.5 h-1.5 rounded-full bg-slate-100 animate-ping" />
+            AI IS EVALUATING...
           </div>
         )}
       </div>
 
-      {/* Overview Stats Dashboard */}
+      {/* Overview Stats Bento Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         {/* Average Score */}
-        <div className="flex flex-col items-center justify-center p-5 rounded-2xl bg-slate-900/40 border border-slate-800/80 text-center">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Average Score</span>
-          <span className="text-3xl font-extrabold text-violet-400">
+        <div className="border border-slate-850 dark:border-slate-800/80 p-5 rounded-lg bg-slate-950/60 dark:bg-black/30 white-shadow flex flex-col items-center justify-center text-center transition-all duration-300 hover:border-slate-100 group">
+          <span className="text-[10px] font-bold text-slate-450 uppercase tracking-widest mb-1.5">Average Score</span>
+          <span className="text-3xl font-extrabold text-slate-100 transition-transform group-hover:scale-105">
             {gradedCount > 0 ? averageScore : (isPolling ? "..." : "0")}
           </span>
-          <span className="text-[10px] text-slate-500 mt-0.5">out of 10</span>
+          <span className="text-[10px] text-slate-500 mt-1">out of 10</span>
         </div>
 
         {/* Verdict */}
-        <div className="flex flex-col items-center justify-center p-5 rounded-2xl bg-slate-900/40 border border-slate-800/80 text-center">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Overall Verdict</span>
-          <span className={`px-3 py-1 text-xs font-semibold rounded-full border ${verdictColor}`}>
+        <div className="border border-slate-850 dark:border-slate-800/80 p-5 rounded-lg bg-slate-950/60 dark:bg-black/30 white-shadow flex flex-col items-center justify-center text-center transition-all duration-300 hover:border-slate-100">
+          <span className="text-[10px] font-bold text-slate-450 uppercase tracking-widest mb-2.5">Overall Verdict</span>
+          <span className={`px-4 py-1 rounded-full border text-[10px] font-bold tracking-widest uppercase ${verdictColor}`}>
             {verdictLabel}
           </span>
         </div>
 
         {/* Answered */}
-        <div className="flex flex-col items-center justify-center p-5 rounded-2xl bg-slate-900/40 border border-slate-800/80 text-center">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Answered</span>
-          <span className="text-3xl font-extrabold text-slate-100">{answeredCount}</span>
-          <span className="text-[10px] text-slate-500 mt-0.5">questions</span>
+        <div className="border border-slate-850 dark:border-slate-800/80 p-5 rounded-lg bg-slate-950/60 dark:bg-black/30 white-shadow flex flex-col items-center justify-center text-center transition-all duration-300 hover:border-slate-100 group">
+          <span className="text-[10px] font-bold text-slate-450 uppercase tracking-widest mb-1.5">Answered</span>
+          <span className="text-3xl font-extrabold text-slate-100 transition-transform group-hover:scale-105">{answeredCount}</span>
+          <span className="text-[10px] text-slate-500 mt-1">questions</span>
         </div>
 
         {/* Skipped */}
-        <div className="flex flex-col items-center justify-center p-5 rounded-2xl bg-slate-900/40 border border-slate-800/80 text-center">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Skipped</span>
-          <span className="text-3xl font-extrabold text-slate-400">{skippedCount}</span>
-          <span className="text-[10px] text-slate-500 mt-0.5">questions</span>
+        <div className="border border-slate-850 dark:border-slate-800/80 p-5 rounded-lg bg-slate-950/60 dark:bg-black/30 white-shadow flex flex-col items-center justify-center text-center transition-all duration-300 hover:border-slate-100 group">
+          <span className="text-[10px] font-bold text-slate-450 uppercase tracking-widest mb-1.5">Skipped</span>
+          <span className="text-3xl font-extrabold text-slate-450 transition-transform group-hover:scale-105">{skippedCount}</span>
+          <span className="text-[10px] text-slate-500 mt-1">questions</span>
         </div>
       </div>
 
       {/* Question History Timeline */}
       <div className="flex flex-col gap-3">
-        <h2 className="text-lg font-bold text-slate-200 mb-1">Question & Answer History</h2>
+        <h2 className="text-sm font-bold text-slate-350 uppercase tracking-wider mb-2">Question & Answer History</h2>
 
         {history.map((item, idx) => (
           <details
             key={item.index}
-            className="group bg-slate-900/20 border border-slate-850/80 rounded-xl overflow-hidden transition-all duration-200"
+            className="group bg-slate-950/40 dark:bg-black/30 border border-slate-850 dark:border-slate-800/80 rounded-lg overflow-hidden transition-all duration-250 royal-glow-hover"
           >
             <summary className="flex justify-between items-center p-4 font-semibold text-slate-200 cursor-pointer hover:bg-slate-900/30 transition-all select-none list-none outline-hidden [&::-webkit-details-marker]:hidden">
               <div className="flex items-center gap-3">
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-800 border border-slate-700 text-xs text-slate-300 font-bold">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full border border-slate-850 dark:border-slate-800/80 text-xs font-bold text-slate-400 shrink-0">
                   {idx + 1}
                 </span>
-                <span className="text-sm font-medium text-slate-300 group-open:text-violet-400 transition-colors line-clamp-1 max-w-[200px] sm:max-w-md">
+                <span className="text-sm font-medium text-slate-300 group-open:text-slate-100 transition-colors line-clamp-1 max-w-[200px] sm:max-w-md">
                   {item.questionText}
                 </span>
               </div>
               <div className="flex items-center gap-3">
                 {item.isSkipped ? (
-                  <span className="px-2 py-0.5 text-[10px] font-semibold text-slate-400 bg-slate-900/50 border border-slate-800 rounded-md">
+                  <span className="px-2.5 py-0.5 text-[9px] uppercase tracking-wider font-bold text-slate-450 bg-slate-900/50 border border-slate-850 dark:border-slate-800 rounded-md">
                     Skipped
                   </span>
                 ) : item.isPending ? (
-                  <span className="px-2 py-0.5 text-[10px] font-semibold text-violet-400 bg-violet-500/10 border-violet-500/30 rounded-md animate-pulse">
+                  <span className="px-2.5 py-0.5 text-[9px] uppercase tracking-wider font-bold text-slate-400 bg-slate-900/50 border border-slate-850 dark:border-slate-800 rounded-md animate-pulse">
                     Reviewing...
                   </span>
                 ) : (
-                  <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-md border ${
-                    item.score >= 8 ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/30" :
-                    item.score >= 5 ? "text-amber-400 bg-amber-500/10 border-amber-500/30" :
-                    "text-red-400 bg-red-500/10 border-red-500/30"
-                  }`}>
+                  <span className={`px-2.5 py-0.5 text-[9px] uppercase tracking-wider font-bold rounded-md border bg-slate-100 text-slate-950`}>
                     Score: {item.score}/10
                   </span>
                 )}
@@ -378,63 +377,63 @@ export const SummaryContainer: React.FC<SummaryContainerProps> = ({ setup, initi
               </div>
             </summary>
 
-            <div className="p-4 border-t border-slate-850/80 bg-slate-950/20 text-slate-300 text-sm flex flex-col gap-4">
+            <div className="p-5 border-t border-slate-850 dark:border-slate-800/80 bg-slate-950/20 text-slate-300 text-sm flex flex-col gap-4">
               {/* Full Question Text */}
               <div>
-                <strong className="block text-xs uppercase font-bold tracking-wider text-slate-500 mb-1">Full Question</strong>
-                <p className="text-slate-200 leading-relaxed bg-slate-950/40 p-3 rounded-lg border border-slate-900">
+                <strong className="block text-[9px] uppercase font-bold tracking-widest text-slate-500 mb-1">Full Question</strong>
+                <p className="text-slate-200 leading-relaxed bg-slate-950/60 dark:bg-black/40 p-3.5 rounded-lg border border-slate-850 dark:border-slate-800/80">
                   {item.questionText}
                 </p>
               </div>
 
               {/* Candidate Answer */}
               <div>
-                <strong className="block text-xs uppercase font-bold tracking-wider text-slate-500 mb-1">Your Answer</strong>
-                <p className="text-slate-200 leading-relaxed bg-slate-950/40 p-3 rounded-lg border border-slate-900 whitespace-pre-wrap">
-                  {item.answerText}
+                <strong className="block text-[9px] uppercase font-bold tracking-widest text-slate-500 mb-1">Your Answer</strong>
+                <p className="text-slate-300 leading-relaxed bg-slate-950/60 dark:bg-black/40 p-3.5 rounded-lg border border-slate-850 dark:border-slate-800/80 italic whitespace-pre-wrap">
+                  "{item.answerText}"
                 </p>
               </div>
 
               {/* Evaluation Feedback */}
               {item.isPending ? (
-                <div className="flex flex-col items-center justify-center p-6 border border-dashed border-slate-800 rounded-xl bg-slate-950/20">
-                  <span className="w-5 h-5 border-2 border-violet-500/20 border-t-violet-500 rounded-full animate-spin mb-2" />
+                <div className="flex flex-col items-center justify-center p-6 border border-dashed border-slate-850 dark:border-slate-800 rounded-lg bg-slate-950/20">
+                  <span className="w-5 h-5 border-2 border-slate-700 border-t-slate-300 rounded-full animate-spin mb-2" />
                   <p className="text-xs text-slate-400">Interviewer feedback is generating. Please wait a moment...</p>
                 </div>
               ) : item.feedback ? (
                 <div className="flex flex-col gap-3 mt-1">
-                  <strong className="block text-xs uppercase font-bold tracking-wider text-slate-500">Evaluation Details</strong>
+                  <strong className="block text-[9px] uppercase font-bold tracking-widest text-slate-500">Evaluation Details</strong>
 
                   {!item.isSkipped && (
                     <div className="grid grid-cols-3 gap-2">
-                      <div className="p-2 rounded-lg bg-slate-950/40 border border-slate-900 flex justify-between text-xs items-center">
-                        <span className="text-slate-400">Clarity</span>
+                      <div className="p-2.5 rounded-lg bg-slate-950/60 dark:bg-black/40 border border-slate-850 dark:border-slate-800/80 flex justify-between text-xs items-center">
+                        <span className="text-slate-450">Clarity</span>
                         <span className="font-semibold text-slate-200">{item.feedback.clarity}/10</span>
                       </div>
-                      <div className="p-2 rounded-lg bg-slate-950/40 border border-slate-900 flex justify-between text-xs items-center">
-                        <span className="text-slate-400">Depth</span>
+                      <div className="p-2.5 rounded-lg bg-slate-950/60 dark:bg-black/40 border border-slate-850 dark:border-slate-800/80 flex justify-between text-xs items-center">
+                        <span className="text-slate-450">Depth</span>
                         <span className="font-semibold text-slate-200">{item.feedback.depth}/10</span>
                       </div>
-                      <div className="p-2 rounded-lg bg-slate-950/40 border border-slate-900 flex justify-between text-xs items-center">
-                        <span className="text-slate-400">Relevance</span>
+                      <div className="p-2.5 rounded-lg bg-slate-950/60 dark:bg-black/40 border border-slate-850 dark:border-slate-800/80 flex justify-between text-xs items-center">
+                        <span className="text-slate-450">Relevance</span>
                         <span className="font-semibold text-slate-200">{item.feedback.relevance}/10</span>
                       </div>
                     </div>
                   )}
 
-                  <div className="flex flex-col gap-2.5">
-                    <div className="p-3 rounded-lg bg-emerald-500/5 border-l-3 border-emerald-500/30 text-xs">
-                      <span className="block text-emerald-400 font-bold mb-0.5">Strength</span>
+                  <div className="flex flex-col gap-2.5 mt-1.5">
+                    <div className="p-3.5 rounded-lg bg-emerald-500/5 dark:bg-emerald-500/5 border-l-2 border-emerald-500 text-xs">
+                      <span className="block text-emerald-400 font-bold uppercase tracking-wide text-[9px] mb-0.5">Strength</span>
                       {item.feedback.strengths}
                     </div>
 
-                    <div className="p-3 rounded-lg bg-amber-500/5 border-l-3 border-amber-500/30 text-xs">
-                      <span className="block text-amber-400 font-bold mb-0.5">Area for Improvement</span>
+                    <div className="p-3.5 rounded-lg bg-amber-500/5 dark:bg-amber-500/5 border-l-2 border-amber-500 text-xs">
+                      <span className="block text-amber-400 font-bold uppercase tracking-wide text-[9px] mb-0.5">Area for Improvement</span>
                       {item.feedback.improvements}
                     </div>
 
-                    <div className="p-3 rounded-lg bg-sky-500/5 border-l-3 border-sky-500/30 text-xs">
-                      <span className="block text-sky-400 font-bold mb-0.5">Ideal Answer Hint</span>
+                    <div className="p-3.5 rounded-lg bg-sky-500/5 dark:bg-sky-500/5 border-l-2 border-sky-500 text-xs">
+                      <span className="block text-sky-400 font-bold uppercase tracking-wide text-[9px] mb-0.5">Ideal Answer Hint</span>
                       {item.feedback.model_answer_hint}
                     </div>
                   </div>
@@ -449,18 +448,29 @@ export const SummaryContainer: React.FC<SummaryContainerProps> = ({ setup, initi
       <button
         onClick={handleExportPDF}
         disabled={isPolling}
-        className="w-full mt-4 py-3.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-slate-100 font-bold rounded-xl border border-slate-800 hover:border-slate-700 active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer"
+        className="w-full mt-4 py-3.5 border border-slate-850 dark:border-slate-800/85 hover:border-slate-100 hover:bg-slate-900/60 text-slate-200 font-semibold rounded-lg text-xs uppercase tracking-widest disabled:opacity-50 active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed select-none"
       >
-        📥 Export Report as PDF
+        <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        Export Report as PDF
       </button>
 
-      {/* Restart Action */}
-      <Link
-        href="/setup"
-        className="w-full py-3.5 bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-violet-600/10 active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2 text-center"
-      >
-        Configure New Interview Session
-      </Link>
+      {/* Action Buttons */}
+      <div className="flex flex-col sm:flex-row gap-3 w-full mt-2">
+        <Link
+          href="/setup"
+          className="flex-1 h-14 bg-slate-100 hover:bg-slate-200 text-slate-950 font-bold rounded-lg hover:shadow-[0px_0px_15px_rgba(255,255,255,0.2)] dark:hover:shadow-[0px_0px_15px_rgba(255,255,255,0.15)] active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2 text-center select-none uppercase tracking-widest text-xs"
+        >
+          Configure New Session
+        </Link>
+        <Link
+          href="/dashboard"
+          className="flex-1 h-14 border border-slate-850 dark:border-slate-800 hover:border-slate-100 hover:bg-slate-900/65 text-slate-200 font-semibold rounded-lg active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2 text-center select-none uppercase tracking-widest text-xs"
+        >
+          📊 Go to Dashboard
+        </Link>
+      </div>
     </div>
   );
 };

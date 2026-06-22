@@ -2,6 +2,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SetupForm } from "@/components/SetupForm";
 import { verifyToken } from "@/lib/modules/auth/auth.service";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 
 interface PageProps {
   searchParams: Promise<{ error?: string }>;
@@ -26,12 +28,17 @@ export default async function SetupPage({ searchParams }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Background shapes */}
-      <div className="absolute top-[-25%] left-[-15%] w-[700px] h-[700px] rounded-full bg-violet-600/5 blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-[-25%] right-[-15%] w-[700px] h-[700px] rounded-full bg-indigo-600/5 blur-[140px] pointer-events-none" />
-
-      <SetupForm error={error} />
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between relative overflow-x-hidden">
+      {/* Ambient background element */}
+      <div className="ambient-glow" />
+      
+      <Header />
+      
+      <main className="flex-grow flex items-center justify-center px-6 py-16">
+        <SetupForm error={error} />
+      </main>
+      
+      <Footer />
     </div>
   );
 }
