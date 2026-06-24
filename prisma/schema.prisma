@@ -13,16 +13,23 @@ datasource db {
 }
 
 model User {
-  id           Int         @id @default(autoincrement())
-  name         String
-  email        String      @unique
-  password     String
-  refreshToken String
-  expiry_date  DateTime
-  role         Role        @default(USER)
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  userInputs   userInput[]
+  id              Int         @id @default(autoincrement())
+  name            String
+  email           String      @unique
+  password        String
+  refreshToken    String
+  expiry_date     DateTime
+  role            Role        @default(USER)
+  phone           String?
+  bio             String?     @db.Text
+  skills          String[]    @default([])
+  experienceYears Int?        @default(0)
+  resumeUrl       String?     @db.Text
+  resumeName      String?
+  resumeText      String?     @db.Text
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  userInputs      userInput[]
 }
 
 model userInput {
