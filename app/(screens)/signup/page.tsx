@@ -51,8 +51,8 @@ export default function SignupPage() {
       localStorage.setItem("token", data.accessToken);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      // Redirect to interview setup
-      router.push("/setup");
+      // Redirect to profile setup
+      router.push("/profile-setup");
     } catch (err: any) {
       setError(err.message || "Failed to create account. Please try again.");
     } finally {
