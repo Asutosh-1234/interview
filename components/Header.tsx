@@ -9,6 +9,7 @@ export const Header: React.FC = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [userName, setUserName] = useState("User");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -24,7 +25,15 @@ export const Header: React.FC = () => {
     }
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+      });
+    } catch (e) {
+      console.error("Logout API request failed:", e);
+    }
+
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     // Clear cookies via client redirection
@@ -81,23 +90,38 @@ export const Header: React.FC = () => {
           </button>
 
           {/* User profile image / initial placeholder */}
-          <div className="group relative flex items-center">
-            <button className="w-8 h-8 rounded-full border border-slate-800 bg-slate-900 flex items-center justify-center text-xs font-bold text-slate-200 overflow-hidden cursor-pointer hover:border-slate-100 transition-colors">
+          <div className="relative flex items-center">
+            <button 
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className="w-8 h-8 rounded-full border border-slate-800 bg-slate-900 flex items-center justify-center text-xs font-bold text-slate-200 overflow-hidden cursor-pointer hover:border-slate-100 transition-colors focus:outline-none"
+            >
               {userName.substring(0, 2).toUpperCase()}
             </button>
             
-            {/* Dropdown Menu on hover */}
-            <div className="absolute right-0 top-full mt-2 w-48 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-1.5 hidden group-hover:block hover:block z-50 animate-fade-in">
-              <div className="px-3 py-2 text-[10px] uppercase tracking-wider font-bold text-slate-500 border-b border-slate-800 mb-1">
-                Account: <span className="text-slate-200 block truncate normal-case font-normal mt-0.5">{userName}</span>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
-              >
-                Sign Out
-              </button>
-            </div>
+            {/* Dropdown Menu */}
+            {dropdownOpen && (
+              <>
+                {/* Backdrop overlay to close when clicking outside */}
+                <div 
+                  className="fixed inset-0 z-40 cursor-default" 
+                  onClick={() => setDropdownOpen(false)} 
+                />
+                <div className="absolute right-0 top-full mt-2 w-48 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-1.5 z-50 animate-fade-in">
+                  <div className="px-3 py-2 text-[10px] uppercase tracking-wider font-bold text-slate-500 border-b border-slate-800 mb-1 select-none">
+                    Account: <span className="text-slate-200 block truncate normal-case font-normal mt-0.5">{userName}</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setDropdownOpen(false);
+                      handleLogout();
+                    }}
+                    className="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
