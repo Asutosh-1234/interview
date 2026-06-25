@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Source_Code_Pro, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
+import { cn } from "@/lib/utils";
+
+const sourceSerif4SourceSerif4 = Source_Serif_4({subsets:['latin','latin-ext','cyrillic','cyrillic-ext','greek','vietnamese'],weight:['200','300','400','500','600','700','800','900'],variable:'--font-source-serif-4'});
+
+const sourceCodeProSourceCodePro = Source_Code_Pro({subsets:['latin','latin-ext','cyrillic','cyrillic-ext','greek','greek-ext','vietnamese'],weight:['200','300','400','500','600','700','800','900'],variable:'--font-source-code-pro'});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,7 +31,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, sourceCodeProSourceCodePro.variable, sourceSerif4SourceSerif4.variable)}
       suppressHydrationWarning
     >
       <head>
