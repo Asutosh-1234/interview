@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ProgressBar } from "./ProgressBar";
+import { CodeEditorContainer } from "./CodeEditorContainer";
 
 interface SetupProps {
   id: number;
@@ -35,11 +36,53 @@ export const InterviewContainer: React.FC<InterviewContainerProps> = ({ setup })
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState<number>(setup.timerDuration);
+  const [isCodingMode, setIsCodingMode] = useState(false);
+  const [presetLanguage, setPresetLanguage] = useState("javascript");
 
   const answerRef = useRef(answer);
   useEffect(() => {
     answerRef.current = answer;
   }, [answer]);
+
+  const checkIsCodingQuestion = (text: string): boolean => {
+    const codingKeywords = [
+      "write a function",
+      "write code",
+      "implement a function",
+      "coding question",
+      "coding challenge",
+      "write a program",
+      "write an algorithm",
+      "fizzbuzz",
+      "programming problem",
+      "implement the following",
+      "solve this challenge",
+      "implement a method"
+    ];
+    const lowerText = text.toLowerCase();
+    
+    if (lowerText.includes("```") || lowerText.includes("`code`")) {
+      return true;
+    }
+    
+    return codingKeywords.some(keyword => lowerText.includes(keyword));
+  };
+
+  // Listen to the custom event triggered by the AI (or ourselves)
+  useEffect(() => {
+    const handleCodingEvent = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail?.language) {
+        setPresetLanguage(customEvent.detail.language);
+      }
+      setIsCodingMode(true);
+    };
+
+    window.addEventListener("ai-coding-question", handleCodingEvent);
+    return () => {
+      window.removeEventListener("ai-coding-question", handleCodingEvent);
+    };
+  }, []);
 
   const wordCount = answer.trim() === "" ? 0 : answer.trim().split(/\s+/).length;
   const isQuestionLoaded = currentQuestionText.length > 0;
@@ -50,13 +93,34 @@ export const InterviewContainer: React.FC<InterviewContainerProps> = ({ setup })
       setError(null);
       setAnswer("");
       setTips([]);
+      setIsCodingMode(false);
+      setPresetLanguage("javascript");
       
       const questionInDb = questions[currentQuestionIndex];
       
       if (questionInDb) {
         // Question is already generated and saved
-        setCurrentQuestionText(questionInDb);
-        fetchTips(questionInDb);
+        let processedQuestion = questionInDb;
+        let dbLanguage = "javascript";
+        
+        // Check if DB question has trigger token (in case it was written raw)
+        if (processedQuestion.includes("[TRIGGER_CODE_EDITOR:")) {
+          const match = processedQuestion.match(/\[TRIGGER_CODE_EDITOR:([a-zA-Z0-9+#]+)\]/);
+          if (match) {
+            dbLanguage = match[1];
+            processedQuestion = processedQuestion.replace(/\[TRIGGER_CODE_EDITOR:[a-zA-Z0-9+#]+\]/g, "");
+          }
+        }
+        
+        setCurrentQuestionText(processedQuestion);
+        fetchTips(processedQuestion);
+
+        // Classify question and dispatch custom event if it's coding
+        if (checkIsCodingQuestion(processedQuestion)) {
+          window.dispatchEvent(new CustomEvent("ai-coding-question", {
+            detail: { questionText: processedQuestion, language: dbLanguage }
+          }));
+        }
       } else {
         // Need to stream the question
         setIsStreaming(true);
@@ -84,6 +148,7 @@ export const InterviewContainer: React.FC<InterviewContainerProps> = ({ setup })
           const decoder = new TextDecoder();
           let done = false;
           let text = "";
+          let detectedLang = "javascript";
 
           while (!done) {
             const { value, done: doneReading } = await reader.read();
@@ -91,18 +156,50 @@ export const InterviewContainer: React.FC<InterviewContainerProps> = ({ setup })
             if (value) {
               const chunk = decoder.decode(value);
               text += chunk;
-              setCurrentQuestionText(text);
+              
+              // Inspect and strip trigger token
+              let displayQuestion = text;
+              if (displayQuestion.includes("[TRIGGER_CODE_EDITOR:")) {
+                const match = displayQuestion.match(/\[TRIGGER_CODE_EDITOR:([a-zA-Z0-9+#]+)\]/);
+                if (match) {
+                  detectedLang = match[1];
+                  // Remove the trigger tag from text
+                  displayQuestion = displayQuestion.replace(/\[TRIGGER_CODE_EDITOR:[a-zA-Z0-9+#]+\]/g, "");
+                  
+                  // Dispatch custom event immediately
+                  window.dispatchEvent(new CustomEvent("ai-coding-question", {
+                    detail: { language: detectedLang }
+                  }));
+                }
+              }
+              
+              setCurrentQuestionText(displayQuestion);
             }
           }
 
           setIsStreaming(false);
+          
+          // Strip trigger tokens from final text before saving/setting state
+          let finalCleanText = text.trim();
+          if (finalCleanText.includes("[TRIGGER_CODE_EDITOR:")) {
+            finalCleanText = finalCleanText.replace(/\[TRIGGER_CODE_EDITOR:[a-zA-Z0-9+#]+\]/g, "");
+          }
+          
           // Update questions local state
           const newQuestions = [...questions];
-          newQuestions[currentQuestionIndex] = text.trim();
+          newQuestions[currentQuestionIndex] = finalCleanText;
           setQuestions(newQuestions);
+          setCurrentQuestionText(finalCleanText);
           
           // Load tips for this generated question
-          fetchTips(text.trim());
+          fetchTips(finalCleanText);
+
+          // Classify question and dispatch custom event if it's coding
+          if (checkIsCodingQuestion(finalCleanText)) {
+            window.dispatchEvent(new CustomEvent("ai-coding-question", {
+              detail: { questionText: finalCleanText, language: detectedLang }
+            }));
+          }
         } catch (err: any) {
           setIsStreaming(false);
           setError(err.message || "Failed to generate question. Please try again.");
@@ -360,54 +457,66 @@ export const InterviewContainer: React.FC<InterviewContainerProps> = ({ setup })
       </div>
 
       {/* Answer Area */}
-      <div className="flex flex-col gap-2">
-        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
-          Your Response
-        </label>
-        <textarea
-          value={answer}
-          onChange={(e) => setAnswer(e.target.value)}
-          disabled={isStreaming || isSubmitting}
-          placeholder={isStreaming ? "Wait for the interviewer to finish asking..." : "Type your detailed answer here. Focus on real-world examples, structure, and technical depth..."}
-          className="w-full h-40 px-4 py-3 bg-slate-950/60 dark:bg-black/40 border border-slate-850 dark:border-slate-800/80 rounded-lg focus:outline-none focus:border-slate-100 text-slate-100 placeholder-slate-600 transition-all duration-200 resize-none disabled:opacity-60 disabled:cursor-not-allowed text-sm custom-scrollbar"
-        />
-        <div className="flex justify-between items-center text-xs text-slate-500 mt-1">
-          <span>Word Count: {wordCount}</span>
-          <span>Aim for 50-150 words for a complete answer</span>
-        </div>
+      {!isCodingMode ? (
+        <div className="flex flex-col gap-2">
+          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
+            Your Response
+          </label>
+          <textarea
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            disabled={isStreaming || isSubmitting}
+            placeholder={isStreaming ? "Wait for the interviewer to finish asking..." : "Type your detailed answer here. Focus on real-world examples, structure, and technical depth..."}
+            className="w-full h-40 px-4 py-3 bg-slate-950/60 dark:bg-black/40 border border-slate-850 dark:border-slate-800/80 rounded-lg focus:outline-none focus:border-slate-100 text-slate-100 placeholder-slate-600 transition-all duration-200 resize-none disabled:opacity-60 disabled:cursor-not-allowed text-sm custom-scrollbar"
+          />
+          <div className="flex justify-between items-center text-xs text-slate-500 mt-1">
+            <span>Word Count: {wordCount}</span>
+            <span>Aim for 50-150 words for a complete answer</span>
+          </div>
 
-        {/* Action Buttons */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
-          <button
-            onClick={handleSkip}
-            disabled={isStreaming || isSubmitting}
-            className="order-2 md:order-1 h-14 border border-slate-850 dark:border-slate-800/80 text-slate-300 hover:text-slate-100 font-semibold rounded-lg text-xs uppercase tracking-widest hover:bg-slate-900/60 active:scale-[0.98] transition-all duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed select-none"
-          >
-            Skip Question
-          </button>
-          <button
-            onClick={handleSubmitAnswer}
-            disabled={isStreaming || isSubmitting || !answer.trim()}
-            className="order-1 md:order-2 h-14 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-950 font-bold rounded-lg hover:shadow-[0px_0px_15px_rgba(255,255,255,0.2)] dark:hover:shadow-[0px_0px_15px_rgba(255,255,255,0.15)] active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed select-none uppercase tracking-widest text-xs"
-          >
-            {isSubmitting ? (
-              <>
-                <span className="w-4 h-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
-                Submitting...
-              </>
-            ) : (
-              "Submit Answer"
-            )}
-          </button>
-          <button
-            onClick={handleEndInterview}
-            disabled={isStreaming || isSubmitting}
-            className="order-3 md:order-3 h-14 border border-red-500/20 text-red-400 hover:bg-red-500/5 hover:border-red-500/60 rounded-lg font-semibold text-xs uppercase tracking-widest active:scale-[0.98] transition-all duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed select-none"
-          >
-            End Interview
-          </button>
+          {/* Action Buttons */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
+            <button
+              onClick={handleSkip}
+              disabled={isStreaming || isSubmitting}
+              className="order-2 md:order-1 h-14 border border-slate-850 dark:border-slate-800/80 text-slate-350 hover:text-slate-100 font-semibold rounded-lg text-xs uppercase tracking-widest hover:bg-slate-900/60 active:scale-[0.98] transition-all duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed select-none"
+            >
+              Skip Question
+            </button>
+            <button
+              onClick={handleSubmitAnswer}
+              disabled={isStreaming || isSubmitting || !answer.trim()}
+              className="order-1 md:order-2 h-14 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-950 font-bold rounded-lg hover:shadow-[0px_0px_15px_rgba(255,255,255,0.2)] dark:hover:shadow-[0px_0px_15px_rgba(255,255,255,0.15)] active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed select-none uppercase tracking-widest text-xs"
+            >
+              {isSubmitting ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                "Submit Answer"
+              )}
+            </button>
+            <button
+              onClick={handleEndInterview}
+              disabled={isStreaming || isSubmitting}
+              className="order-3 md:order-3 h-14 border border-red-500/20 text-red-400 hover:bg-red-500/5 hover:border-red-500/60 rounded-lg font-semibold text-xs uppercase tracking-widest active:scale-[0.98] transition-all duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed select-none"
+            >
+              End Interview
+            </button>
+          </div>
         </div>
-      </div>
+      ) : (
+        <CodeEditorContainer
+          questionText={currentQuestionText}
+          initialLanguage={presetLanguage}
+          isSubmitting={isSubmitting}
+          onChange={(payload) => setAnswer(JSON.stringify(payload))}
+          onSubmit={handleSubmitAnswer}
+          onSkip={handleSkip}
+          onEndInterview={handleEndInterview}
+        />
+      )}
     </div>
   );
 };

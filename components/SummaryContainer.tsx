@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { jsPDF } from "jspdf";
+import { CodeAnswerDisplay } from "./CodeAnswerDisplay";
 
 interface AnswerData {
   id: number;
@@ -245,7 +246,19 @@ export const SummaryContainer: React.FC<SummaryContainerProps> = ({ setup, initi
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.setTextColor(71, 85, 105);
-      const aLines = doc.splitTextToSize(`Your Answer: ${item.answerText}`, 180);
+
+      let displayAnswerText = item.answerText;
+      try {
+        const trimmed = item.answerText.trim();
+        if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+          const parsed = JSON.parse(trimmed);
+          if (parsed.code !== undefined || parsed.explanation !== undefined) {
+            displayAnswerText = `[Code Solution - ${parsed.language || "javascript"}]\n${parsed.code || ""}\n\n[Explanation]\n${parsed.explanation || ""}`;
+          }
+        }
+      } catch (e) {}
+
+      const aLines = doc.splitTextToSize(`Your Answer: \n${displayAnswerText}`, 180);
       doc.text(aLines, 14, yPos);
       yPos += (aLines.length * 5) + 3;
 
@@ -387,12 +400,33 @@ export const SummaryContainer: React.FC<SummaryContainerProps> = ({ setup, initi
               </div>
 
               {/* Candidate Answer */}
-              <div>
-                <strong className="block text-[9px] uppercase font-bold tracking-widest text-slate-500 mb-1">Your Answer</strong>
-                <p className="text-slate-300 leading-relaxed bg-slate-950/60 dark:bg-black/40 p-3.5 rounded-lg border border-slate-850 dark:border-slate-800/80 italic whitespace-pre-wrap">
-                  "{item.answerText}"
-                </p>
-              </div>
+              {(() => {
+                let isCodingAnswer = false;
+                try {
+                  const trimmed = item.answerText.trim();
+                  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+                    const parsed = JSON.parse(trimmed);
+                    if (parsed.code !== undefined || parsed.explanation !== undefined) {
+                      isCodingAnswer = true;
+                    }
+                  }
+                } catch (e) {}
+
+                if (isCodingAnswer) {
+                  return (
+                    <CodeAnswerDisplay answerText={item.answerText} />
+                  );
+                }
+
+                return (
+                  <div>
+                    <strong className="block text-[9px] uppercase font-bold tracking-widest text-slate-500 mb-1">Your Answer</strong>
+                    <p className="text-slate-300 leading-relaxed bg-slate-950/60 dark:bg-black/40 p-3.5 rounded-lg border border-slate-850 dark:border-slate-800/80 italic whitespace-pre-wrap">
+                      "{item.answerText}"
+                    </p>
+                  </div>
+                );
+              })()}
 
               {/* Evaluation Feedback */}
               {item.isPending ? (
