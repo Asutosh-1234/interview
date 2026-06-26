@@ -10,7 +10,57 @@ export async function reviewAnswerAndSave(
   questionText: string,
   answerText: string
 ): Promise<any> {
-  const prompt = `
+  let evaluatedAnswer = answerText;
+  let isCodingAnswer = false;
+  let codeSnippet = "";
+  let explanationSnippet = "";
+
+  try {
+    const trimmed = answerText.trim();
+    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+      const parsed = JSON.parse(trimmed);
+      if (parsed.code !== undefined || parsed.explanation !== undefined) {
+        codeSnippet = parsed.code || "";
+        explanationSnippet = parsed.explanation || "";
+        isCodingAnswer = true;
+        evaluatedAnswer = `Code Snippet:\n\`\`\`\n${codeSnippet}\n\`\`\`\n\nExplanation:\n${explanationSnippet}`;
+      }
+    }
+  } catch (e) {
+    // Treat as regular answer text
+  }
+
+  const prompt = isCodingAnswer
+    ? `
+You are an expert technical interviewer.
+Evaluate the candidate's code submission and accompanying explanation for the following coding question.
+
+Question: ${questionText}
+
+Candidate's Code Submission:
+\`\`\`
+${codeSnippet}
+\`\`\`
+
+Candidate's Explanation:
+${explanationSnippet}
+
+Act as a strict but fair interviewer. Evaluate the candidate's code and explanation against the question.
+Assess the code correctness, code quality, edge cases, complexity (time and space), and the clarity and depth of their explanation.
+Provide scores out of 10 and concise comments.
+Respond strictly in JSON format matching this structure:
+{
+  "overall": 8,
+  "clarity": 7,
+  "depth": 8,
+  "relevance": 9,
+  "strengths": "One sentence on what was done well in the code or explanation.",
+  "improvements": "One sentence on what to improve in the code or explanation.",
+  "model_answer_hint": "One sentence hinting at the ideal answer approach or optimal code solution."
+}
+Use integer scores only (1-10) — no decimals. Do not include any other markdown formatting, code block markers, or explanation.
+`
+    : `
 You are an expert technical interviewer.
 Evaluate the candidate's answer to the following question.
 

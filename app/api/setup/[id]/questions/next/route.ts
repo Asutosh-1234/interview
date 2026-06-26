@@ -103,6 +103,16 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       async start(controller) {
         try {
           for await (const chunk of responseStream) {
+            // Intercept triggerCodingChallenge function call
+            if (chunk.functionCalls && chunk.functionCalls.length > 0) {
+              const call = chunk.functionCalls[0];
+              if (call.name === "triggerCodingChallenge" && call.args) {
+                const langArgs = call.args as { programmingLanguage?: string };
+                const lang = (langArgs.programmingLanguage || "javascript").toLowerCase();
+                controller.enqueue(new TextEncoder().encode(`[TRIGGER_CODE_EDITOR:${lang}]`));
+              }
+            }
+
             const text = chunk.text;
             if (text) {
               fullQuestionText += text;

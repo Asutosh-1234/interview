@@ -1,7 +1,7 @@
 import { zodVerify } from "@/lib/common/zodVeryfication";
 import { createSetupDto } from "./setup.dto";
 import { CreateSetupPayload } from "./setup.type";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import ENV from "@/lib/common/env";
 
 const ai = new GoogleGenAI({ apiKey: ENV.GEMINI_API_KEY });
@@ -89,6 +89,8 @@ ${companyInfo}- Target Experience Level: ${config.difficulty} (${config.yearsOfE
 
 Generate Question #1. If a target company is specified, tailor the question style and scenarios to fit that company's engineering standards.
 Respond with ONLY the text of the question. Do not include any formatting, markdown, intro, or conversational filler.
+
+CRITICAL: If the question requires the candidate to write code, solve a programming problem, or write an algorithm, you MUST call the tool 'triggerCodingChallenge' with the appropriate programmingLanguage value (e.g., javascript, python, typescript, java, cpp).
 `;
   } else {
     const historyText = config.history
@@ -111,12 +113,36 @@ ${historyText}
 Based on the candidate's previous responses, generate Question #${config.questionIndex + 1}.
 Adapt to their answers: go deeper into a topic if they answered well, ask a follow-up to clarify, or pivot to another relevant skill if needed. If a target company is specified, keep questions aligned with that company's focus area.
 Respond with ONLY the text of the next question. Do not include any formatting, markdown, intro, or conversational filler.
+
+CRITICAL: If the question requires the candidate to write code, solve a programming problem, or write an algorithm, you MUST call the tool 'triggerCodingChallenge' with the appropriate programmingLanguage value (e.g., javascript, python, typescript, java, cpp).
 `;
   }
 
   const responseStream = await ai.models.generateContentStream({
     model: ENV.QUESTION_MODEL,
     contents: prompt,
+    config: {
+      tools: [
+        {
+          functionDeclarations: [
+            {
+              name: "triggerCodingChallenge",
+              description: "Call this tool if and only if the generated interview question is a coding question, programming task, or algorithm challenge. Calling this tool triggers the IDE editor UI so the candidate can write and explain their code.",
+              parameters: {
+                type: Type.OBJECT,
+                properties: {
+                  programmingLanguage: {
+                    type: Type.STRING,
+                    description: "The specific programming language for this coding task (e.g. javascript, python, typescript, java, cpp)."
+                  }
+                },
+                required: ["programmingLanguage"]
+              }
+            }
+          ]
+        }
+      ]
+    }
   });
 
   return responseStream;
