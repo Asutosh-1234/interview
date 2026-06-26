@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/modules/auth/auth.service";
 import prisma from "@/lib/db/prisma";
 import { generateNextQuestionStream } from "@/lib/modules/setup/gemini.service";
-import { reviewAnswerAndSave } from "@/lib/modules/setup/review.service";
+import { ApiError } from "@/lib/common/api.error";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -24,7 +24,7 @@ async function authenticateRequest(req: NextRequest) {
   }
 
   if (!token) {
-    throw new Error("Unauthorized");
+    throw ApiError.unauthorized();
   }
 
   const decoded = await verifyToken(token);
@@ -33,7 +33,7 @@ async function authenticateRequest(req: NextRequest) {
   });
 
   if (!user) {
-    throw new Error("Unauthorized");
+    throw ApiError.unauthorized();
   }
 
   return user;
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     const setupId = parseInt(id);
 
     if (isNaN(setupId)) {
-      return NextResponse.json({ error: "Invalid setup ID" }, { status: 400 });
+      throw ApiError.badRequest("Invalid setup ID");
     }
 
     const setup = await prisma.userInput.findUnique({
@@ -54,11 +54,11 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     });
 
     if (!setup) {
-      return NextResponse.json({ error: "Setup not found" }, { status: 404 });
+      throw ApiError.notFound("Setup not found");
     }
 
     if (setup.userId !== user.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      throw ApiError.forbidden();
     }
 
     // Safely parse body parameters
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     }
 
     if (questionIndex < 0) {
-      return NextResponse.json({ error: "Invalid questionIndex" }, { status: 400 });
+      throw ApiError.badRequest("Invalid questionIndex");
     }
 
     // Build history for dynamic adaptive prompt
@@ -143,7 +143,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       },
     });
   } catch (error: any) {
-    const status = error.message === "Unauthorized" ? 401 : 400;
-    return NextResponse.json({ error: error.message || "Failed to generate next question" }, { status });
+    return ApiError.handle(error);
   }
 }
+

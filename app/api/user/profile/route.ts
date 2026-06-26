@@ -1,8 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { verifyToken } from "@/lib/modules/auth/auth.service";
 import { updateUserProfile } from "@/lib/modules/user/user.service";
 import prisma from "@/lib/db/prisma";
 import { cookies } from "next/headers";
+import { ApiResponse } from "@/lib/common/api.response";
+import { ApiError } from "@/lib/common/api.error";
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,7 +22,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!token) {
-      return NextResponse.json({ error: "Missing or invalid authentication" }, { status: 401 });
+      throw ApiError.unauthorized("Missing or invalid authentication");
     }
 
     // 2. Verify JWT
@@ -32,7 +34,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      throw ApiError.notFound("User not found");
     }
 
     // 4. Parse payload
@@ -44,12 +46,10 @@ export async function POST(req: NextRequest) {
       userId: user.id,
     });
 
-    return NextResponse.json({ success: true, user: updated });
+    return ApiResponse.success({ user: updated }, undefined, 200);
   } catch (error: any) {
     console.error("Profile update error:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to update profile" },
-      { status: 400 }
-    );
+    return ApiError.handle(error);
   }
 }
+

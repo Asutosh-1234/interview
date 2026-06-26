@@ -1,8 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/modules/auth/auth.service";
 import prisma from "@/lib/db/prisma";
 import { reviewAnswerAndSave } from "@/lib/modules/setup/review.service";
+import { ApiResponse } from "@/lib/common/api.response";
+import { ApiError } from "@/lib/common/api.error";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -23,7 +25,7 @@ async function authenticateRequest(req: NextRequest) {
   }
 
   if (!token) {
-    throw new Error("Unauthorized");
+    throw ApiError.unauthorized();
   }
 
   const decoded = await verifyToken(token);
@@ -32,7 +34,7 @@ async function authenticateRequest(req: NextRequest) {
   });
 
   if (!user) {
-    throw new Error("Unauthorized");
+    throw ApiError.unauthorized();
   }
 
   return user;
@@ -45,7 +47,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     const setupId = parseInt(id);
 
     if (isNaN(setupId)) {
-      return NextResponse.json({ error: "Invalid setup ID" }, { status: 400 });
+      throw ApiError.badRequest("Invalid setup ID");
     }
 
     const setup = await prisma.userInput.findUnique({
@@ -53,11 +55,11 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     });
 
     if (!setup) {
-      return NextResponse.json({ error: "Setup not found" }, { status: 404 });
+      throw ApiError.notFound("Setup not found");
     }
 
     if (setup.userId !== user.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      throw ApiError.forbidden();
     }
 
     // Parse body parameters
@@ -67,12 +69,12 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     const questionIndex = typeof body.questionIndex === "number" ? body.questionIndex : -1;
 
     if (questionIndex < 0 || questionIndex >= setup.questions.length) {
-      return NextResponse.json({ error: "Invalid question index" }, { status: 400 });
+      throw ApiError.badRequest("Invalid question index");
     }
 
     const questionText = setup.questions[questionIndex];
     if (!questionText) {
-      return NextResponse.json({ error: "Question not found" }, { status: 404 });
+      throw ApiError.notFound("Question not found");
     }
 
     let feedback;
@@ -122,10 +124,9 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       });
     }
 
-    return NextResponse.json({ success: true }, { status: 200 });
+    return ApiResponse.success({ success: true }, undefined, 200);
   } catch (error: any) {
-    const status = error.message === "Unauthorized" ? 401 : 400;
-    return NextResponse.json({ error: error.message || "Failed to submit answer" }, { status });
+    return ApiError.handle(error);
   }
 }
 
@@ -136,7 +137,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     const setupId = parseInt(id);
 
     if (isNaN(setupId)) {
-      return NextResponse.json({ error: "Invalid setup ID" }, { status: 400 });
+      throw ApiError.badRequest("Invalid setup ID");
     }
 
     const setup = await prisma.userInput.findUnique({
@@ -144,11 +145,11 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     });
 
     if (!setup) {
-      return NextResponse.json({ error: "Setup not found" }, { status: 404 });
+      throw ApiError.notFound("Setup not found");
     }
 
     if (setup.userId !== user.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      throw ApiError.forbidden();
     }
 
     const answers = await prisma.answers.findMany({
@@ -185,9 +186,9 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       };
     });
 
-    return NextResponse.json({ answers: parsedAnswers, setup }, { status: 200 });
+    return ApiResponse.success({ answers: parsedAnswers, setup }, undefined, 200);
   } catch (error: any) {
-    const status = error.message === "Unauthorized" ? 401 : 400;
-    return NextResponse.json({ error: error.message || "Failed to fetch answers" }, { status });
+    return ApiError.handle(error);
   }
 }
+

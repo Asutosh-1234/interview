@@ -1,8 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/modules/auth/auth.service";
 import prisma from "@/lib/db/prisma";
 import { generateQuestionTips } from "@/lib/modules/setup/gemini.service";
+import { ApiResponse } from "@/lib/common/api.response";
+import { ApiError } from "@/lib/common/api.error";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -22,7 +24,7 @@ async function authenticateRequest(req: NextRequest) {
   }
 
   if (!token) {
-    throw new Error("Unauthorized");
+    throw ApiError.unauthorized();
   }
 
   const decoded = await verifyToken(token);
@@ -31,7 +33,7 @@ async function authenticateRequest(req: NextRequest) {
   });
 
   if (!user) {
-    throw new Error("Unauthorized");
+    throw ApiError.unauthorized();
   }
 
   return user;
@@ -44,7 +46,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     const setupId = parseInt(id);
 
     if (isNaN(setupId)) {
-      return NextResponse.json({ error: "Invalid setup ID" }, { status: 400 });
+      throw ApiError.badRequest("Invalid setup ID");
     }
 
     const setup = await prisma.userInput.findUnique({
@@ -52,25 +54,25 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     });
 
     if (!setup) {
-      return NextResponse.json({ error: "Setup not found" }, { status: 404 });
+      throw ApiError.notFound("Setup not found");
     }
 
     if (setup.userId !== user.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      throw ApiError.forbidden();
     }
 
     const body = await req.json();
     const questionText = body.question || "";
 
     if (!questionText.trim()) {
-      return NextResponse.json({ error: "Question text is required" }, { status: 400 });
+      throw ApiError.badRequest("Question text is required");
     }
 
     const tips = await generateQuestionTips(questionText);
 
-    return NextResponse.json({ tips }, { status: 200 });
+    return ApiResponse.success({ tips }, undefined, 200);
   } catch (error: any) {
-    const status = error.message === "Unauthorized" ? 401 : 400;
-    return NextResponse.json({ error: error.message || "Failed to generate tips" }, { status });
+    return ApiError.handle(error);
   }
 }
+

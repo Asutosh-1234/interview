@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { verifyToken } from "@/lib/modules/auth/auth.service";
 import prisma from "@/lib/db/prisma";
 import { cookies } from "next/headers";
@@ -6,6 +6,8 @@ import { GoogleGenAI } from "@google/genai";
 import ENV from "@/lib/common/env";
 import fs from "fs";
 import path from "path";
+import { ApiResponse } from "@/lib/common/api.response";
+import { ApiError } from "@/lib/common/api.error";
 
 const ai = new GoogleGenAI({ apiKey: ENV.GEMINI_API_KEY });
 
@@ -25,7 +27,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!token) {
-      return NextResponse.json({ error: "Missing or invalid authentication" }, { status: 401 });
+      throw ApiError.unauthorized("Missing or invalid authentication");
     }
 
     // 2. Verify JWT
@@ -37,7 +39,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      throw ApiError.notFound("User not found");
     }
 
     // 4. Parse FormData
@@ -45,7 +47,7 @@ export async function POST(req: NextRequest) {
     const file = formData.get("file") as File | null;
 
     if (!file) {
-      return NextResponse.json({ error: "No resume file provided" }, { status: 400 });
+      throw ApiError.badRequest("No resume file provided");
     }
 
     // Convert file to buffer
@@ -105,17 +107,14 @@ export async function POST(req: NextRequest) {
 
     const parsedData = JSON.parse(response.text.trim());
 
-    return NextResponse.json({
-      success: true,
+    return ApiResponse.success({
       resumeUrl: relativeUrl,
       resumeName: file.name,
       extractedData: parsedData,
     });
   } catch (error: any) {
     console.error("Resume parsing error:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to parse resume" },
-      { status: 550 }
-    );
+    return ApiError.handle(error);
   }
 }
+

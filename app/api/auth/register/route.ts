@@ -1,6 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createUser } from "@/lib/modules/auth/auth.service";
 import { cookies } from "next/headers";
+import { ApiResponse } from "@/lib/common/api.response";
+import { ApiError } from "@/lib/common/api.error";
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,8 +16,9 @@ export async function POST(req: NextRequest) {
       path: "/",
       maxAge: 7 * 24 * 60 * 60, // 7 days
     });
-    return NextResponse.json(result, { status: 201 });
+    return ApiResponse.success(result, undefined, 201);
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Registration failed" }, { status: 400 });
+    return ApiError.handle(error);
   }
 }
+
