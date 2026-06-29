@@ -36,6 +36,10 @@ export default async function InterviewPage({ searchParams }: PageProps) {
   try {
     decoded = await verifyToken(token);
   } catch (err) {
+    decoded = null;
+  }
+
+  if (!decoded) {
     redirect("/login");
   }
 

@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface Session {
   id: number;
@@ -22,10 +23,44 @@ interface DashboardContainerProps {
 }
 
 export const DashboardContainer: React.FC<DashboardContainerProps> = ({ sessions }) => {
-  const [mounted, setMounted] = React.useState(false);
+  const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+  const [isStartingProfile, setIsStartingProfile] = useState(false);
+  const [dashError, setDashError] = useState<string | null>(null);
+
   React.useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleQuickProfileStart = async () => {
+    setIsStartingProfile(true);
+    setDashError(null);
+
+    try {
+      const response = await fetch("/api/setup/profile-based", {
+        method: "POST",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to create setup from profile");
+      }
+
+      const setup = data;
+      router.push(`/interview?currentSetupId=${setup.id}&questionsCount=${setup.questionsCount}&jobTitle=${encodeURIComponent(setup.jobTitle)}&companyName=${encodeURIComponent(setup.companyName || "")}&timerDuration=0`);
+    } catch (err: any) {
+      const errorMsg = err.message || "Failed to create setup. Redirecting to Profile Setup page...";
+      setDashError(errorMsg);
+      if (errorMsg.toLowerCase().includes("profile") || errorMsg.toLowerCase().includes("resume")) {
+        setTimeout(() => {
+          router.push("/profile-setup");
+        }, 2500);
+      }
+    } finally {
+      setIsStartingProfile(false);
+    }
+  };
 
   // 1. Calculate Account-Wide Stats
   const totalSessions = sessions.length;
@@ -102,13 +137,36 @@ export const DashboardContainer: React.FC<DashboardContainerProps> = ({ sessions
             Monitor your progress, review past simulations, and track score improvements
           </p>
         </div>
-        <Link
-          href="/setup"
-          className="px-5 py-3 text-xs font-bold uppercase tracking-widest bg-slate-100 hover:bg-slate-200 text-slate-950 rounded-lg hover:shadow-[0px_0px_15px_rgba(255,255,255,0.2)] dark:hover:shadow-[0px_0px_15px_rgba(255,255,255,0.15)] active:scale-[0.98] transition-all duration-150 select-none cursor-pointer"
-        >
-          🚀 Start New Session
-        </Link>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button
+            onClick={handleQuickProfileStart}
+            disabled={isStartingProfile}
+            className="px-5 py-3 text-xs font-bold uppercase tracking-widest border border-slate-850 dark:border-slate-800 hover:border-slate-100 hover:bg-slate-900 text-slate-200 rounded-lg active:scale-[0.98] transition-all duration-150 select-none cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5 whitespace-nowrap"
+          >
+            {isStartingProfile ? (
+              <>
+                <span className="w-3.5 h-3.5 border-2 border-slate-400/30 border-t-slate-400 rounded-full animate-spin" />
+                Analyzing Profile...
+              </>
+            ) : (
+              "✨ Tailored Profile Interview"
+            )}
+          </button>
+          <Link
+            href="/setup"
+            className="px-5 py-3 text-xs font-bold uppercase tracking-widest bg-slate-100 hover:bg-slate-200 text-slate-950 rounded-lg hover:shadow-[0px_0px_15px_rgba(255,255,255,0.2)] dark:hover:shadow-[0px_0px_15px_rgba(255,255,255,0.15)] active:scale-[0.98] transition-all duration-150 select-none cursor-pointer text-center whitespace-nowrap"
+          >
+            🚀 Start New Session
+          </Link>
+        </div>
       </div>
+
+      {dashError && (
+        <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-xs px-4 py-3 rounded-lg flex justify-between items-center">
+          <span>{dashError}</span>
+          <button onClick={() => setDashError(null)} className="text-slate-450 hover:text-slate-200 text-xs ml-2 underline">Dismiss</button>
+        </div>
+      )}
 
       {/* Overview Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">

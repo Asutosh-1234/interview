@@ -95,6 +95,13 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       interviewType: setup.interviewType,
       questionIndex,
       history,
+      userProfile: {
+        bio: user.bio || undefined,
+        skills: user.skills,
+        experienceYears: user.experienceYears || undefined,
+        resumeName: user.resumeName || undefined,
+        resumeText: user.resumeText || undefined,
+      },
     });
 
     // Create ReadableStream to proxy Gemini stream chunks and write to database when complete

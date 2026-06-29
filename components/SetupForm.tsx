@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Level, InterviewType } from "@/generated/prisma/enums";
 import { FormInput } from "./ui/FormInput";
 import { FormSelect } from "./ui/FormSelect";
@@ -15,6 +16,10 @@ interface SetupFormProps {
 }
 
 export const SetupForm: React.FC<SetupFormProps> = ({ error }) => {
+  const router = useRouter();
+  const [isGeneratingProfileSetup, setIsGeneratingProfileSetup] = useState(false);
+  const [setupError, setSetupError] = useState<string | null>(error || null);
+
   const difficultyOptions = [
     { value: Level.Fresher, label: "Fresher" },
     { value: Level.Junior, label: "Junior" },
@@ -29,6 +34,30 @@ export const SetupForm: React.FC<SetupFormProps> = ({ error }) => {
     { value: InterviewType.Design, label: "UI/UX Design" },
     { value: InterviewType.Mixed, label: "Mixed" },
   ];
+
+  const handleProfileBasedSetup = async () => {
+    setIsGeneratingProfileSetup(true);
+    setSetupError(null);
+
+    try {
+      const response = await fetch("/api/setup/profile-based", {
+        method: "POST",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to create setup from profile");
+      }
+
+      const setup = data;
+      router.push(`/interview?currentSetupId=${setup.id}&questionsCount=${setup.questionsCount}&jobTitle=${encodeURIComponent(setup.jobTitle)}&companyName=${encodeURIComponent(setup.companyName || "")}&timerDuration=0`);
+    } catch (err: any) {
+      setSetupError(err.message || "Failed to create setup. Make sure you have uploaded a resume or completed your profile details.");
+    } finally {
+      setIsGeneratingProfileSetup(false);
+    }
+  };
 
   return (
     <div className="w-full max-w-2xl flex flex-col gap-6 z-10 animate-slide-in">
@@ -54,9 +83,34 @@ export const SetupForm: React.FC<SetupFormProps> = ({ error }) => {
           </Link>
         </div>
 
-        {error && (
+        {/* Quick Profile Setup Option */}
+        <div className="p-5 rounded-xl border border-slate-850 dark:border-slate-800/80 bg-slate-950/45 dark:bg-black/25 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex flex-col gap-1">
+            <h3 className="text-sm font-bold text-slate-205">🚀 Quick Start with Resume / Profile</h3>
+            <p className="text-[11px] text-slate-400">
+              Let Gemini analyze your bio, skills, and resume text to generate a tailored interview instantly.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleProfileBasedSetup}
+            disabled={isGeneratingProfileSetup}
+            className="px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider bg-slate-105 hover:bg-slate-200 disabled:opacity-50 text-slate-950 rounded-lg active:scale-[0.98] transition-all duration-150 shrink-0 select-none cursor-pointer flex items-center gap-2"
+          >
+            {isGeneratingProfileSetup ? (
+              <>
+                <span className="w-3.5 h-3.5 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
+                Analyzing...
+              </>
+            ) : (
+              "Tailor Interview"
+            )}
+          </button>
+        </div>
+
+        {setupError && (
           <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl">
-            {error}
+            {setupError}
           </div>
         )}
 

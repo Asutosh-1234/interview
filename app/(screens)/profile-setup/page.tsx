@@ -15,9 +15,14 @@ export default async function ProfileSetupPage() {
   }
 
   // 2. Validate the JWT token
+  let decoded;
   try {
-    await verifyToken(token);
+    decoded = await verifyToken(token);
   } catch (err) {
+    decoded = null;
+  }
+
+  if (!decoded) {
     redirect("/login");
   }
 

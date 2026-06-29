@@ -21,6 +21,10 @@ export default async function DashboardPage() {
   try {
     decoded = await verifyToken(token);
   } catch (err) {
+    decoded = null;
+  }
+
+  if (!decoded) {
     redirect("/login");
   }
 

@@ -74,9 +74,30 @@ export async function generateNextQuestionStream(config: {
   interviewType: string;
   questionIndex: number;
   history: { question: string; answer: string }[];
+  userProfile?: {
+    bio?: string;
+    skills: string[];
+    experienceYears?: number;
+    resumeName?: string;
+    resumeText?: string;
+  };
 }) {
   let prompt = "";
   const companyInfo = config.companyName ? `- Target Company: ${config.companyName}\n` : "";
+
+  let profilePromptPart = "";
+  if (config.userProfile) {
+    const { bio, skills, experienceYears, resumeName, resumeText } = config.userProfile;
+    profilePromptPart = `
+Candidate Profile Context (TAILOR questions to this candidate's specific background and credentials):
+${bio ? `- Professional Bio: ${bio}\n` : ""}${skills && skills.length > 0 ? `- Stated Skills: ${skills.join(", ")}\n` : ""}${experienceYears !== undefined ? `- Stated Years of Experience: ${experienceYears} years\n` : ""}${resumeName ? `- Resume File: ${resumeName}\n` : ""}${resumeText ? `- Extracted Resume Text:\n"""\n${resumeText.substring(0, 3000)}\n"""\n` : ""}
+
+CRITICAL BEHAVIOR:
+1. Integrate the candidate's actual background, past projects, companies, skills, and bio context when framing the questions.
+2. If they have specific technologies or experiences listed in their resume/bio, ask questions that challenge or probe them on those details.
+3. Make the interview feel personalized to them, as a real interviewer who has read their resume would do.
+`;
+  }
 
   if (config.questionIndex === 0) {
     prompt = `
@@ -86,11 +107,11 @@ Generate the first interview question for the candidate based on their setup:
 ${companyInfo}- Target Experience Level: ${config.difficulty} (${config.yearsOfExperience} years of experience)
 - Interview Type: ${config.interviewType}
 - Tech Stack / Topics: ${config.techStack.join(", ") || "General software development"}
-
+${profilePromptPart}
 Generate Question #1. If a target company is specified, tailor the question style and scenarios to fit that company's engineering standards.
 Respond with ONLY the text of the question. Do not include any formatting, markdown, intro, or conversational filler.
 
-CRITICAL: If the question requires the candidate to write code, solve a programming problem, or write an algorithm, you MUST call the tool 'triggerCodingChallenge' with the appropriate programmingLanguage value (e.g., javascript, python, typescript, java, cpp).
+CRITICAL: If the question requires the candidate to write code, solve a programming problem, or write an algorithm, you MUST call the tool 'triggerCodingChallenge' with the appropriate programmingLanguage value (e.g., javascript, python, typescript, java, cpp). Even when calling 'triggerCodingChallenge', you MUST still output the full text of the coding problem description in your response so the candidate knows what they are expected to build.
 `;
   } else {
     const historyText = config.history
@@ -106,7 +127,7 @@ Candidate Setup:
 ${companyInfo}- Target Experience Level: ${config.difficulty} (${config.yearsOfExperience} years of experience)
 - Interview Type: ${config.interviewType}
 - Tech Stack / Topics: ${config.techStack.join(", ") || "General software development"}
-
+${profilePromptPart}
 Interview History:
 ${historyText}
 
@@ -114,7 +135,7 @@ Based on the candidate's previous responses, generate Question #${config.questio
 Adapt to their answers: go deeper into a topic if they answered well, ask a follow-up to clarify, or pivot to another relevant skill if needed. If a target company is specified, keep questions aligned with that company's focus area.
 Respond with ONLY the text of the next question. Do not include any formatting, markdown, intro, or conversational filler.
 
-CRITICAL: If the question requires the candidate to write code, solve a programming problem, or write an algorithm, you MUST call the tool 'triggerCodingChallenge' with the appropriate programmingLanguage value (e.g., javascript, python, typescript, java, cpp).
+CRITICAL: If the question requires the candidate to write code, solve a programming problem, or write an algorithm, you MUST call the tool 'triggerCodingChallenge' with the appropriate programmingLanguage value (e.g., javascript, python, typescript, java, cpp). Even when calling 'triggerCodingChallenge', you MUST still output the full text of the coding problem description in your response so the candidate knows what they are expected to build.
 `;
   }
 

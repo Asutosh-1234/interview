@@ -65,7 +65,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     const questionText = body.question || "";
 
     if (!questionText.trim()) {
-      throw ApiError.badRequest("Question text is required");
+      return ApiResponse.success({ tips: [] }, undefined, 200);
     }
 
     const tips = await generateQuestionTips(questionText);
