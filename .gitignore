@@ -40,6 +40,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/generated
 task_desc.md
 AI_Interview_Simulator_Intern_Task.docx
