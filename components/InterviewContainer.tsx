@@ -38,6 +38,64 @@ export const InterviewContainer: React.FC<InterviewContainerProps> = ({ setup })
   const [timeLeft, setTimeLeft] = useState<number>(setup.timerDuration);
   const [isCodingMode, setIsCodingMode] = useState(false);
   const [presetLanguage, setPresetLanguage] = useState("javascript");
+  const [warningToast, setWarningToast] = useState<string | null>(null);
+
+  // Auto-dismiss warning toast after 3 seconds
+  useEffect(() => {
+    if (warningToast) {
+      const timer = setTimeout(() => {
+        setWarningToast(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [warningToast]);
+
+  // Prevent copy, cut, paste, drop, and right-click during the interview session
+  useEffect(() => {
+    const handleBlockAction = (e: Event) => {
+      e.preventDefault();
+      setWarningToast("Copying and pasting is disabled during the interview session.");
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isCmdOrCtrl = e.ctrlKey || e.metaKey;
+      if (
+        isCmdOrCtrl &&
+        (e.key === "c" ||
+          e.key === "v" ||
+          e.key === "x" ||
+          e.key === "C" ||
+          e.key === "V" ||
+          e.key === "X")
+      ) {
+        e.preventDefault();
+        e.stopPropagation(); // Stop Monaco editor or browser from handling this shortcut
+        setWarningToast("Keyboard shortcuts for copy, cut, and paste are disabled.");
+      }
+    };
+
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      setWarningToast("Right-click context menu is disabled.");
+    };
+
+    // Use capturing phase (true) to intercept events before Monaco editor or others catch them
+    document.addEventListener("copy", handleBlockAction, true);
+    document.addEventListener("cut", handleBlockAction, true);
+    document.addEventListener("paste", handleBlockAction, true);
+    document.addEventListener("keydown", handleKeyDown, true);
+    document.addEventListener("drop", handleBlockAction, true);
+    document.addEventListener("contextmenu", handleContextMenu, true);
+
+    return () => {
+      document.removeEventListener("copy", handleBlockAction, true);
+      document.removeEventListener("cut", handleBlockAction, true);
+      document.removeEventListener("paste", handleBlockAction, true);
+      document.removeEventListener("keydown", handleKeyDown, true);
+      document.removeEventListener("drop", handleBlockAction, true);
+      document.removeEventListener("contextmenu", handleContextMenu, true);
+    };
+  }, []);
 
   const answerRef = useRef(answer);
   useEffect(() => {
@@ -409,7 +467,7 @@ export const InterviewContainer: React.FC<InterviewContainerProps> = ({ setup })
       )}
 
       {/* Question Card */}
-      <div className="flex flex-col gap-4 p-6 rounded-lg bg-slate-900/60 dark:bg-black/30 border border-slate-850 dark:border-slate-800/80 min-h-[140px] relative justify-center white-shadow">
+      <div className="flex flex-col gap-4 p-6 rounded-lg bg-slate-900/60 dark:bg-black/30 border border-slate-850 dark:border-slate-800/80 min-h-[140px] relative justify-center white-shadow select-none">
         {/* Left vertical primary accent */}
         <div className="absolute left-0 top-0 bottom-0 w-1 bg-slate-100 rounded-l-lg" />
         
@@ -516,6 +574,14 @@ export const InterviewContainer: React.FC<InterviewContainerProps> = ({ setup })
           onSkip={handleSkip}
           onEndInterview={handleEndInterview}
         />
+      )}
+
+      {/* Warning Toast */}
+      {warningToast && (
+        <div className="fixed bottom-6 left-0 right-0 mx-auto w-max z-50 bg-red-950/95 border border-red-500/50 text-red-200 text-sm px-6 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 backdrop-blur-md animate-fade-in whitespace-nowrap min-w-[320px] justify-center">
+          <span className="text-base text-red-400">🚨</span>
+          <span className="font-medium tracking-tight">{warningToast}</span>
+        </div>
       )}
     </div>
   );
