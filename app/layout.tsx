@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Source_Code_Pro, Source_Serif_4 } from "next/font/go
 import "./globals.css";
 import Script from "next/script";
 import { cn } from "@/lib/utils";
+import StoreProvider from "@/components/provider/StoreProvider";
 
 const sourceSerif4SourceSerif4 = Source_Serif_4({subsets:['latin','latin-ext','cyrillic','cyrillic-ext','greek','vietnamese'],weight:['200','300','400','500','600','700','800','900'],variable:'--font-source-serif-4'});
 
@@ -54,7 +55,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col relative">
-        {children}
+        <StoreProvider>
+          {children}
+        </StoreProvider>
       </body>
     </html>
   );

@@ -1,5 +1,21 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
+import {
+  initializeSession,
+  setCurrentQuestionIndex,
+  setQuestions,
+  setCurrentQuestionText,
+  setIsStreaming,
+  setAnswer as setAnswerAction,
+  setTips,
+  setIsLoadingTips,
+  setIsSubmitting,
+  setError,
+  setIsCodingMode,
+  setPresetLanguage,
+  setWarningToast,
+} from "@/lib/store/features/interviewSlice";
 import { useInterviewTimer } from "./useInterviewTimer";
 import { useSecurityRestrictions } from "./useSecurityRestrictions";
 
@@ -18,20 +34,37 @@ interface SetupProps {
 
 export function useInterviewSessionState(setup: SetupProps) {
   const router = useRouter();
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [questions, setQuestions] = useState<string[]>(setup.questions);
-  const [currentQuestionText, setCurrentQuestionText] = useState("");
-  const [isStreaming, setIsStreaming] = useState(false);
+  const dispatch = useAppDispatch();
 
-  const [answer, setAnswer] = useState("");
-  const [tips, setTips] = useState<string[]>([]);
-  const [isLoadingTips, setIsLoadingTips] = useState(false);
+  // Read state from Redux
+  const {
+    currentQuestionIndex,
+    questions,
+    currentQuestionText,
+    isStreaming,
+    answer,
+    tips,
+    isLoadingTips,
+    isSubmitting,
+    error,
+    isCodingMode,
+    presetLanguage,
+    warningToast,
+  } = useAppSelector((state) => state.interview);
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isCodingMode, setIsCodingMode] = useState(false);
-  const [presetLanguage, setPresetLanguage] = useState("javascript");
-  const [warningToast, setWarningToast] = useState<string | null>(null);
+  // Initialize session once when component mounts or setup changes
+  const isInitializedRef = useRef(false);
+  useEffect(() => {
+    if (!isInitializedRef.current) {
+      dispatch(
+        initializeSession({
+          questions: setup.questions,
+          timerDuration: setup.timerDuration,
+        })
+      );
+      isInitializedRef.current = true;
+    }
+  }, [setup.questions, setup.timerDuration, dispatch]);
 
   const answerRef = useRef(answer);
   useEffect(() => {
@@ -39,54 +72,57 @@ export function useInterviewSessionState(setup: SetupProps) {
   }, [answer]);
 
   // Hook up timer
-  const timerActive = setup.timerDuration > 0 && !isStreaming && !isSubmitting;
+  const timerActive = setup.timerDuration > 0 && !isStreaming && !isSubmitting && isInitializedRef.current;
   const timeLeft = useInterviewTimer(setup.timerDuration, timerActive, () =>
     handleTimeExpired()
   );
 
   // Hook up security restrictions
-  useSecurityRestrictions(true, (msg) => setWarningToast(msg));
+  useSecurityRestrictions(true, (msg) => dispatch(setWarningToast(msg)));
 
   // Auto-dismiss warning toast after 3 seconds
   useEffect(() => {
     if (warningToast) {
       const timer = setTimeout(() => {
-        setWarningToast(null);
+        dispatch(setWarningToast(null));
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [warningToast]);
+  }, [warningToast, dispatch]);
 
   // Listen to the custom event triggered by the AI (or ourselves)
   useEffect(() => {
     const handleCodingEvent = (e: Event) => {
       const customEvent = e as CustomEvent;
       if (customEvent.detail?.language) {
-        setPresetLanguage(customEvent.detail.language);
+        dispatch(setPresetLanguage(customEvent.detail.language));
       }
-      setIsCodingMode(true);
+      dispatch(setIsCodingMode(true));
     };
 
     window.addEventListener("ai-coding-question", handleCodingEvent);
     return () => {
       window.removeEventListener("ai-coding-question", handleCodingEvent);
     };
-  }, []);
+  }, [dispatch]);
 
   // Stream current question when index or questions array changes
   useEffect(() => {
+    // Only load if questions have been initialized
+    if (questions.length === 0) return;
+
     const loadQuestion = async () => {
-      setError(null);
-      setAnswer("");
-      setTips([]);
-      setIsCodingMode(false);
-      setPresetLanguage("javascript");
+      dispatch(setError(null));
+      dispatch(setAnswerAction(""));
+      dispatch(setTips([]));
+      dispatch(setIsCodingMode(false));
+      dispatch(setPresetLanguage("javascript"));
 
       const questionInDb = questions[currentQuestionIndex];
 
       if (questionInDb) {
         const { cleanText, language } = parseTriggerToken(questionInDb);
-        setCurrentQuestionText(cleanText);
+        dispatch(setCurrentQuestionText(cleanText));
         fetchTips(cleanText);
 
         if (checkIsCodingQuestion(cleanText)) {
@@ -100,15 +136,15 @@ export function useInterviewSessionState(setup: SetupProps) {
           );
         }
       } else {
-        setIsStreaming(true);
-        setCurrentQuestionText("");
+        dispatch(setIsStreaming(true));
+        dispatch(setCurrentQuestionText(""));
 
         try {
           const finalRawText = await streamQuestion(
             setup.id,
             currentQuestionIndex,
             (displayQuestion, detectedLang) => {
-              setCurrentQuestionText(displayQuestion);
+              dispatch(setCurrentQuestionText(displayQuestion));
               if (detectedLang || checkIsCodingQuestion(displayQuestion)) {
                 window.dispatchEvent(
                   new CustomEvent("ai-coding-question", {
@@ -119,13 +155,13 @@ export function useInterviewSessionState(setup: SetupProps) {
             }
           );
 
-          setIsStreaming(false);
+          dispatch(setIsStreaming(false));
 
           const { cleanText, language } = parseTriggerToken(finalRawText);
           const newQuestions = [...questions];
           newQuestions[currentQuestionIndex] = cleanText;
-          setQuestions(newQuestions);
-          setCurrentQuestionText(cleanText);
+          dispatch(setQuestions(newQuestions));
+          dispatch(setCurrentQuestionText(cleanText));
 
           fetchTips(cleanText);
 
@@ -140,66 +176,74 @@ export function useInterviewSessionState(setup: SetupProps) {
             );
           }
         } catch (err: any) {
-          setIsStreaming(false);
-          setError(
-            err.message || "Failed to generate question. Please try again."
+          dispatch(setIsStreaming(false));
+          dispatch(
+            setError(
+              err.message || "Failed to generate question. Please try again."
+            )
           );
         }
       }
     };
 
     loadQuestion();
-  }, [currentQuestionIndex]);
+  }, [
+    currentQuestionIndex,
+    questions.length,
+    questions[currentQuestionIndex],
+    dispatch,
+    setup.id,
+  ]);
 
   const fetchTips = async (questionText: string) => {
-    setIsLoadingTips(true);
+    dispatch(setIsLoadingTips(true));
     try {
       const fetchedTips = await fetchTipsApi(setup.id, questionText);
-      setTips(fetchedTips);
+      dispatch(setTips(fetchedTips));
     } catch (e) {
       console.error("Failed to fetch tips", e);
     } finally {
-      setIsLoadingTips(false);
+      dispatch(setIsLoadingTips(false));
     }
   };
 
   const handleSubmitAnswer = async () => {
     if (!answer.trim()) {
-      setError("Please write an answer before submitting.");
+      dispatch(setError("Please write an answer before submitting."));
       return;
     }
 
-    setError(null);
-    setIsSubmitting(true);
+    dispatch(setError(null));
+    dispatch(setIsSubmitting(true));
 
     try {
       await submitAnswerApi(setup.id, currentQuestionIndex, answer.trim());
       handleNextQuestion();
     } catch (err: any) {
-      setError(err.message || "Something went wrong.");
+      dispatch(setError(err.message || "Something went wrong."));
     } finally {
-      setIsSubmitting(false);
+      dispatch(setIsSubmitting(false));
     }
   };
 
   const handleSkip = async () => {
-    setError(null);
-    setIsSubmitting(true);
+    dispatch(setError(null));
+    dispatch(setIsSubmitting(true));
 
     try {
       await submitAnswerApi(setup.id, currentQuestionIndex, "Skipped", true);
       handleNextQuestion();
     } catch (err: any) {
-      setError(err.message || "Failed to skip question properly.");
+      dispatch(setError(err.message || "Failed to skip question properly."));
     } finally {
-      setIsSubmitting(false);
+      dispatch(setIsSubmitting(false));
     }
   };
 
   const handleTimeExpired = async () => {
     const currentAnswer = answerRef.current;
-    setError("Time expired! Submitting answer...");
-    setIsSubmitting(true);
+    dispatch(setError("Time expired! Submitting answer..."));
+    dispatch(setIsSubmitting(true));
 
     try {
       const isSkipped = currentAnswer.trim() === "";
@@ -214,7 +258,7 @@ export function useInterviewSessionState(setup: SetupProps) {
       console.error(err);
       handleNextQuestion();
     } finally {
-      setIsSubmitting(false);
+      dispatch(setIsSubmitting(false));
     }
   };
 
@@ -222,12 +266,16 @@ export function useInterviewSessionState(setup: SetupProps) {
     if (currentQuestionIndex + 1 >= setup.questionsCount) {
       router.push(`/summery?currentSetupId=${setup.id}`);
     } else {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      dispatch(setCurrentQuestionIndex(currentQuestionIndex + 1));
     }
   };
 
   const handleEndInterview = () => {
     router.push(`/summery?currentSetupId=${setup.id}`);
+  };
+
+  const setAnswer = (val: string) => {
+    dispatch(setAnswerAction(val));
   };
 
   return {
