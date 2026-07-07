@@ -37,9 +37,10 @@ interface SetupData {
 interface SummaryContainerProps {
   setup: SetupData;
   initialAnswers: AnswerData[];
+  terminated?: boolean;
 }
 
-export const SummaryContainer: React.FC<SummaryContainerProps> = ({ setup, initialAnswers }) => {
+export const SummaryContainer: React.FC<SummaryContainerProps> = ({ setup, initialAnswers, terminated }) => {
   const [answers, setAnswers] = useState<AnswerData[]>(initialAnswers);
   const [isPolling, setIsPolling] = useState(false);
 
@@ -291,6 +292,21 @@ export const SummaryContainer: React.FC<SummaryContainerProps> = ({ setup, initi
 
   return (
     <div className="w-full max-w-[800px] flex flex-col gap-6 z-10 my-8 animate-slide-in">
+      {terminated && (
+        <div className="w-full bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-5 py-4 rounded-xl flex items-center gap-3 backdrop-blur-md animate-fade-in relative overflow-hidden select-none">
+          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-red-500" />
+          <span className="text-xl pl-1">🚨</span>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest block">
+              Session Terminated
+            </span>
+            <span className="text-slate-200 text-xs md:text-sm font-medium leading-relaxed">
+              The interview session was ended because you switched tabs or left the active window.
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Title */}
       <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-4 text-center sm:text-left border-b border-slate-850 dark:border-slate-800/80 pb-6">
         <div>

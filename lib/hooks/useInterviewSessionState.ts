@@ -78,7 +78,13 @@ export function useInterviewSessionState(setup: SetupProps) {
   );
 
   // Hook up security restrictions
-  useSecurityRestrictions(true, (msg) => dispatch(setWarningToast(msg)));
+  useSecurityRestrictions(
+    true,
+    (msg) => dispatch(setWarningToast(msg)),
+    () => {
+      router.push(`/summery?currentSetupId=${setup.id}&terminated=true`);
+    }
+  );
 
   // Auto-dismiss warning toast after 3 seconds
   useEffect(() => {

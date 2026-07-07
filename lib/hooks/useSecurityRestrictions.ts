@@ -2,7 +2,8 @@ import { useEffect } from "react";
 
 export function useSecurityRestrictions(
   isEnabled: boolean,
-  onViolation: (message: string) => void
+  onViolation: (message: string) => void,
+  onTabSwitch?: () => void
 ) {
   useEffect(() => {
     if (!isEnabled) return;
@@ -34,6 +35,12 @@ export function useSecurityRestrictions(
       onViolation("Right-click context menu is disabled.");
     };
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden" && onTabSwitch) {
+        onTabSwitch();
+      }
+    };
+
     // Use capturing phase (true) to intercept events before child elements handle them
     document.addEventListener("copy", handleBlockAction, true);
     document.addEventListener("cut", handleBlockAction, true);
@@ -41,6 +48,7 @@ export function useSecurityRestrictions(
     document.addEventListener("keydown", handleKeyDown, true);
     document.addEventListener("drop", handleBlockAction, true);
     document.addEventListener("contextmenu", handleContextMenu, true);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       document.removeEventListener("copy", handleBlockAction, true);
@@ -49,6 +57,7 @@ export function useSecurityRestrictions(
       document.removeEventListener("keydown", handleKeyDown, true);
       document.removeEventListener("drop", handleBlockAction, true);
       document.removeEventListener("contextmenu", handleContextMenu, true);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [isEnabled, onViolation]);
+  }, [isEnabled, onViolation, onTabSwitch]);
 }

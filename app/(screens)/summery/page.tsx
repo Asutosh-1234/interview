@@ -7,11 +7,11 @@ import { Footer } from "@/components/Footer";
 import { SummaryContainer } from "@/components/SummaryContainer";
 
 interface PageProps {
-  searchParams: Promise<{ currentSetupId?: string }>;
+  searchParams: Promise<{ currentSetupId?: string; terminated?: string }>;
 }
 
 export default async function SummaryPage({ searchParams }: PageProps) {
-  const { currentSetupId } = await searchParams;
+  const { currentSetupId, terminated } = await searchParams;
 
   if (!currentSetupId) {
     redirect("/setup");
@@ -110,8 +110,12 @@ export default async function SummaryPage({ searchParams }: PageProps) {
       
       <Header />
       
-      <main className="flex-grow flex items-center justify-center px-6 py-16">
-        <SummaryContainer setup={formattedSetup} initialAnswers={formattedAnswers} />
+      <main className="grow flex items-center justify-center px-6 py-16">
+        <SummaryContainer 
+          setup={formattedSetup} 
+          initialAnswers={formattedAnswers} 
+          terminated={terminated === "true"} 
+        />
       </main>
       
       <Footer />
