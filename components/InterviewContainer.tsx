@@ -76,7 +76,10 @@ export const InterviewContainer: React.FC<InterviewContainerProps> = ({ setup })
                   ? "text-red-400 bg-red-500/10 border-red-500/30 animate-pulse" 
                   : "text-slate-350 bg-slate-900 border-slate-850 dark:border-slate-800/80"
               }`}>
-                ⏱️ {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, "0")}
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, "0")}
               </span>
             )}
           </div>
@@ -120,7 +123,10 @@ export const InterviewContainer: React.FC<InterviewContainerProps> = ({ setup })
                     key={index}
                     className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-950 dark:bg-slate-900 border border-slate-850 dark:border-slate-800 text-slate-400 hover:text-slate-200 transition-colors text-[10px] font-semibold rounded-full"
                   >
-                    💡 {tip}
+                    <svg className="w-3 h-3 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                    {tip}
                   </span>
                 ))}
               </div>
@@ -206,7 +212,7 @@ export const InterviewContainer: React.FC<InterviewContainerProps> = ({ setup })
       {/* Warning Toast */}
       {warningToast && (
         <div className="fixed bottom-6 left-0 right-0 mx-auto w-max z-50 bg-red-950/95 border border-red-500/50 text-red-200 text-sm px-6 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 backdrop-blur-md animate-fade-in whitespace-nowrap min-w-[320px] justify-center">
-          <span className="text-base text-red-400">🚨</span>
+          <span className="text-sm font-bold text-red-500 bg-red-950 border border-red-500/50 w-5 h-5 flex items-center justify-center rounded-full shrink-0">!</span>
           <span className="font-medium tracking-tight">{warningToast}</span>
         </div>
       )}

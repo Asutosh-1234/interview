@@ -149,14 +149,14 @@ export const DashboardContainer: React.FC<DashboardContainerProps> = ({ sessions
                 Analyzing Profile...
               </>
             ) : (
-              "✨ Tailored Profile Interview"
+              "Tailored Profile Interview"
             )}
           </button>
           <Link
             href="/setup"
             className="px-5 py-3 text-xs font-bold uppercase tracking-widest bg-slate-100 hover:bg-slate-200 text-slate-950 rounded-lg hover:shadow-[0px_0px_15px_rgba(255,255,255,0.2)] dark:hover:shadow-[0px_0px_15px_rgba(255,255,255,0.15)] active:scale-[0.98] transition-all duration-150 select-none cursor-pointer text-center whitespace-nowrap"
           >
-            🚀 Start New Session
+            Start New Session
           </Link>
         </div>
       </div>
@@ -283,7 +283,9 @@ export const DashboardContainer: React.FC<DashboardContainerProps> = ({ sessions
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center p-12 text-center gap-4 bg-slate-950/20 border border-dashed border-slate-850 dark:border-slate-800 rounded-xl">
-            <span className="text-4xl">📭</span>
+            <svg className="w-10 h-10 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0l-3.5 3.5a2 2 0 01-2.828 0L4 13" />
+            </svg>
             <div className="flex flex-col gap-1">
               <h3 className="text-sm font-bold text-slate-350 uppercase tracking-wide">No sessions found</h3>
               <p className="text-xs text-slate-500 max-w-sm">

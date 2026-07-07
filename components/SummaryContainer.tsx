@@ -295,7 +295,7 @@ export const SummaryContainer: React.FC<SummaryContainerProps> = ({ setup, initi
       {terminated && (
         <div className="w-full bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-5 py-4 rounded-xl flex items-center gap-3 backdrop-blur-md animate-fade-in relative overflow-hidden select-none">
           <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-red-500" />
-          <span className="text-xl pl-1">🚨</span>
+          <span className="text-xl pl-1 font-semibold text-red-500 flex items-center justify-center w-6 h-6 border border-red-500/35 rounded-full select-none">!</span>
           <div className="flex flex-col gap-0.5">
             <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest block">
               Session Terminated
@@ -518,7 +518,7 @@ export const SummaryContainer: React.FC<SummaryContainerProps> = ({ setup, initi
           href="/dashboard"
           className="flex-1 h-14 border border-slate-850 dark:border-slate-800 hover:border-slate-100 hover:bg-slate-900/65 text-slate-200 font-semibold rounded-lg active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2 text-center select-none uppercase tracking-widest text-xs"
         >
-          📊 Go to Dashboard
+          Go to Dashboard
         </Link>
       </div>
     </div>

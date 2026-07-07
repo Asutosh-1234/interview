@@ -86,7 +86,7 @@ export const SetupForm: React.FC<SetupFormProps> = ({ error }) => {
         {/* Quick Profile Setup Option */}
         <div className="p-5 rounded-xl border border-slate-850 dark:border-slate-800/80 bg-slate-950/45 dark:bg-black/25 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex flex-col gap-1">
-            <h3 className="text-sm font-bold text-slate-205">🚀 Quick Start with Resume / Profile</h3>
+            <h3 className="text-sm font-bold text-slate-205">Quick Start with Resume / Profile</h3>
             <p className="text-[11px] text-slate-400">
               Let Gemini analyze your bio, skills, and resume text to generate a tailored interview instantly.
             </p>
