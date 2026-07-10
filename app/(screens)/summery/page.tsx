@@ -74,6 +74,9 @@ export default async function SummaryPage({ searchParams }: PageProps) {
     yearsOfExperience: setup.yearsOfExperience,
     interviewType: setup.interviewType,
     questions: setup.questions,
+    tabSwitchesCount: setup.tabSwitchesCount,
+    tabSwitchLogs: setup.tabSwitchLogs,
+    recordingUrl: setup.recordingUrl,
   };
 
   const formattedAnswers = setup.answers.map((ans) => {

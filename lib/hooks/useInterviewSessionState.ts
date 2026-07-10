@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import {
@@ -77,14 +77,187 @@ export function useInterviewSessionState(setup: SetupProps) {
     handleTimeExpired()
   );
 
-  // Hook up security restrictions
-  useSecurityRestrictions(
-    true,
-    (msg) => dispatch(setWarningToast(msg)),
-    () => {
-      router.push(`/summery?currentSetupId=${setup.id}&terminated=true`);
+  // Proctoring and Recording States
+  const [screenShareState, setScreenShareState] = useState<'idle' | 'prompt' | 'recording' | 'stopped' | 'error'>('idle');
+  const [screenShareError, setScreenShareError] = useState<string | null>(null);
+  const [isUploadingRecording, setIsUploadingRecording] = useState(false);
+  const [tabSwitchesCount, setTabSwitchesCount] = useState(0);
+  const [proctoringLogs, setProctoringLogs] = useState<{ timestamp: string; event: string; duration?: number }[]>([]);
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const tabSwitchesCountRef = useRef(0);
+  const proctoringLogsRef = useRef<{ timestamp: string; event: string; duration?: number }[]>([]);
+  const lastLeftTimeRef = useRef<number | null>(null);
+
+  const addProctoringLog = async (event: string, duration?: number) => {
+    const newLog = {
+      timestamp: new Date().toISOString(),
+      event,
+      duration,
+    };
+    const updatedLogs = [...proctoringLogsRef.current, newLog];
+    proctoringLogsRef.current = updatedLogs;
+    setProctoringLogs(updatedLogs);
+
+    try {
+      await fetch(`/api/setup/${setup.id}/proctoring`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tabSwitchesCount: tabSwitchesCountRef.current,
+          tabSwitchLogs: JSON.stringify(updatedLogs),
+        }),
+      });
+    } catch (e) {
+      console.error("Failed to sync proctoring logs:", e);
     }
+  };
+
+  const startScreenRecording = async () => {
+    setScreenShareState('prompt');
+    setScreenShareError(null);
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: {
+          frameRate: { ideal: 10 },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+        audio: false,
+      });
+
+      streamRef.current = stream;
+      chunksRef.current = [];
+
+      const videoTrack = stream.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.onended = () => {
+          setScreenShareState('stopped');
+          addProctoringLog("Screen sharing was stopped by the user.");
+        };
+      }
+
+      let mediaRecorder;
+      try {
+        mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm; codecs=vp9" });
+      } catch (e) {
+        mediaRecorder = new MediaRecorder(stream);
+      }
+
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) {
+          chunksRef.current.push(e.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const completeBlob = new Blob(chunksRef.current, { type: "video/webm" });
+        const { saveRecordingLocal } = await import("@/lib/utils/db");
+        await saveRecordingLocal(setup.id, completeBlob);
+
+        setIsUploadingRecording(true);
+        try {
+          const formData = new FormData();
+          formData.append("recording", completeBlob, "recording.webm");
+
+          const res = await fetch(`/api/setup/${setup.id}/recording`, {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!res.ok) {
+            throw new Error("Failed to upload recording to server");
+          }
+          addProctoringLog("Screen recording uploaded successfully.");
+        } catch (err: any) {
+          console.error(err);
+          addProctoringLog(`Screen recording upload failed: ${err.message || err}. Saved in local browser cache.`);
+        } finally {
+          setIsUploadingRecording(false);
+        }
+      };
+
+      mediaRecorder.start(2000);
+      setScreenShareState('recording');
+      addProctoringLog("Screen recording started.");
+      return true;
+    } catch (err: any) {
+      console.error(err);
+      setScreenShareState('error');
+      setScreenShareError(err.message || "Failed to start screen recording. Please grant permissions.");
+      return false;
+    }
+  };
+
+  const resumeScreenRecording = async () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+    }
+    return await startScreenRecording();
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.stop();
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+    }
+  };
+
+  const handleTabSwitch = async (visibilityState: "hidden" | "visible") => {
+    if (screenShareState === 'idle') return;
+
+    if (visibilityState === "hidden") {
+      const leftTime = Date.now();
+      lastLeftTimeRef.current = leftTime;
+
+      const newCount = tabSwitchesCountRef.current + 1;
+      tabSwitchesCountRef.current = newCount;
+      setTabSwitchesCount(newCount);
+
+      const timestampStr = new Date().toLocaleTimeString();
+      await addProctoringLog(`Switched away from interview tab (Violation ${newCount}/3) at ${timestampStr}`);
+      dispatch(setWarningToast(`Warning: Tab switch detected! (Violation ${newCount}/3)`));
+    } else {
+      if (lastLeftTimeRef.current !== null) {
+        const returnedTime = Date.now();
+        const durationSec = Math.round((returnedTime - lastLeftTimeRef.current) / 1000);
+        lastLeftTimeRef.current = null;
+
+        const timestampStr = new Date().toLocaleTimeString();
+        await addProctoringLog(`Returned to interview tab at ${timestampStr} (Away for ${durationSec}s)`);
+
+        if (tabSwitchesCountRef.current >= 3) {
+          await addProctoringLog(`Interview terminated automatically due to excessive tab switches (3 violations).`);
+          stopRecording();
+          setTimeout(() => {
+            router.push(`/summery?currentSetupId=${setup.id}&terminated=true`);
+          }, 1000);
+        }
+      }
+    }
+  };
+
+  useSecurityRestrictions(
+    screenShareState === 'recording',
+    (msg) => dispatch(setWarningToast(msg)),
+    handleTabSwitch
   );
+
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, []);
 
   // Auto-dismiss warning toast after 3 seconds
   useEffect(() => {
@@ -270,14 +443,20 @@ export function useInterviewSessionState(setup: SetupProps) {
 
   const handleNextQuestion = () => {
     if (currentQuestionIndex + 1 >= setup.questionsCount) {
-      router.push(`/summery?currentSetupId=${setup.id}`);
+      stopRecording();
+      setTimeout(() => {
+        router.push(`/summery?currentSetupId=${setup.id}`);
+      }, 1500);
     } else {
       dispatch(setCurrentQuestionIndex(currentQuestionIndex + 1));
     }
   };
 
   const handleEndInterview = () => {
-    router.push(`/summery?currentSetupId=${setup.id}`);
+    stopRecording();
+    setTimeout(() => {
+      router.push(`/summery?currentSetupId=${setup.id}`);
+    }, 1500);
   };
 
   const setAnswer = (val: string) => {
@@ -301,6 +480,14 @@ export function useInterviewSessionState(setup: SetupProps) {
     handleSubmitAnswer,
     handleSkip,
     handleEndInterview,
+    screenShareState,
+    screenShareError,
+    isUploadingRecording,
+    tabSwitchesCount,
+    proctoringLogs,
+    startScreenRecording,
+    resumeScreenRecording,
+    stopRecording,
   };
 }
 

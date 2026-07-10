@@ -47,6 +47,10 @@ model userInput {
   userId Int
   user   User @relation(fields: [userId], references: [id])
 
+  tabSwitchesCount    Int           @default(0)
+  tabSwitchLogs       String?       @db.Text
+  recordingUrl        String?       @db.Text
+
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   answers   Answers[]

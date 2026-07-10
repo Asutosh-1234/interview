@@ -32,6 +32,9 @@ interface SetupData {
   yearsOfExperience: number;
   interviewType: string;
   questions: string[];
+  tabSwitchesCount: number;
+  tabSwitchLogs: string | null;
+  recordingUrl: string | null;
 }
 
 interface SummaryContainerProps {
@@ -43,6 +46,25 @@ interface SummaryContainerProps {
 export const SummaryContainer: React.FC<SummaryContainerProps> = ({ setup, initialAnswers, terminated }) => {
   const [answers, setAnswers] = useState<AnswerData[]>(initialAnswers);
   const [isPolling, setIsPolling] = useState(false);
+  const [localVideoUrl, setLocalVideoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchLocalVideo = async () => {
+      if (!setup.recordingUrl) {
+        try {
+          const { getRecordingLocal } = await import("@/lib/utils/db");
+          const blob = await getRecordingLocal(setup.id);
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            setLocalVideoUrl(url);
+          }
+        } catch (e) {
+          console.error("Failed to read local video from IndexedDB:", e);
+        }
+      }
+    };
+    fetchLocalVideo();
+  }, [setup.id, setup.recordingUrl]);
 
   // Check if any answers are still pending review (excluding skipped)
   const hasPendingReviews = answers.some(
@@ -359,6 +381,115 @@ export const SummaryContainer: React.FC<SummaryContainerProps> = ({ setup, initi
           <span className="text-[10px] font-bold text-slate-450 uppercase tracking-widest mb-1.5">Skipped</span>
           <span className="text-3xl font-extrabold text-slate-450 transition-transform group-hover:scale-105">{skippedCount}</span>
           <span className="text-[10px] text-slate-500 mt-1">questions</span>
+        </div>
+      </div>
+
+      {/* Proctoring & Integrity Report */}
+      <div className="border border-slate-850 dark:border-slate-800/80 rounded-lg bg-slate-950/40 dark:bg-black/30 p-6 flex flex-col gap-6 white-shadow">
+        <div className="flex items-center justify-between border-b border-slate-850 dark:border-slate-800/85 pb-4">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+            <h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider">Proctoring & Integrity Audit</h2>
+          </div>
+          <span className="text-[10px] font-bold text-slate-400 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-md uppercase">
+            Tab Switches: {setup.tabSwitchesCount}/3
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Video Player Column */}
+          <div className="flex flex-col gap-3">
+            <span className="text-[10px] font-bold text-slate-450 uppercase tracking-widest">Screen Session Recording</span>
+            {setup.recordingUrl || localVideoUrl ? (
+              <div className="flex flex-col gap-2">
+                <div className="relative overflow-hidden rounded-lg border border-slate-800 bg-slate-950 aspect-video flex items-center justify-center">
+                  <video 
+                    src={setup.recordingUrl || localVideoUrl || undefined} 
+                    controls 
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <div className="flex justify-between items-center text-[10px] text-slate-500 px-1">
+                  <span>{setup.recordingUrl ? "Source: Cloud Server" : "Source: Browser Cache"}</span>
+                  <a 
+                    href={setup.recordingUrl || localVideoUrl || undefined}
+                    download={`Interview-ScreenShare-${setup.id}.webm`}
+                    className="text-indigo-400 hover:text-indigo-300 font-semibold uppercase tracking-wider cursor-pointer"
+                  >
+                    Download WebM
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center gap-2 border border-dashed border-slate-850 rounded-lg p-8 bg-slate-950/20 text-slate-500 min-h-[160px]">
+                <svg className="w-8 h-8 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <span className="text-xs font-semibold">No recording available</span>
+                <span className="text-[10px] text-center max-w-[200px] leading-relaxed">Permission was not granted or upload failed.</span>
+              </div>
+            )}
+          </div>
+
+          {/* Activity Logs Column */}
+          <div className="flex flex-col gap-3">
+            <span className="text-[10px] font-bold text-slate-450 uppercase tracking-widest">Tab Switch Audit History</span>
+            <div className="grow max-h-[190px] overflow-y-auto border border-slate-850 bg-slate-950/30 rounded-lg p-4 flex flex-col gap-2.5 custom-scrollbar">
+              {(() => {
+                let parsedLogs: { timestamp: string; event: string; duration?: number }[] = [];
+                if (setup.tabSwitchLogs) {
+                  try {
+                    parsedLogs = JSON.parse(setup.tabSwitchLogs);
+                  } catch (e) {
+                    console.error("Failed to parse tab switch logs:", e);
+                  }
+                }
+                
+                if (parsedLogs.length === 0) {
+                  return (
+                    <div className="flex flex-col items-center justify-center h-full text-slate-600 gap-1.5 py-6">
+                      <svg className="w-5 h-5 text-emerald-500/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                      <span className="text-[10px] font-bold uppercase tracking-wide text-emerald-400">100% Integrity Score</span>
+                      <span className="text-[9px] text-center text-slate-500">No tab switches or violations detected.</span>
+                    </div>
+                  );
+                }
+
+                return parsedLogs.map((log, index) => {
+                  const date = new Date(log.timestamp);
+                  const isViolation = log.event.includes("Violation");
+                  const isReturn = log.event.includes("Returned");
+                  const isUpload = log.event.includes("upload") || log.event.includes("uploaded");
+
+                  let badgeColor = "bg-slate-900 border-slate-800 text-slate-400";
+                  if (isViolation) badgeColor = "bg-red-500/10 border-red-500/20 text-red-400";
+                  else if (isReturn) badgeColor = "bg-amber-500/10 border-amber-500/20 text-amber-400";
+                  else if (isUpload) badgeColor = "bg-emerald-500/10 border-emerald-500/20 text-emerald-400";
+
+                  return (
+                    <div 
+                      key={index}
+                      className={`flex gap-2.5 p-2 rounded-md border text-[11px] font-medium leading-normal items-start ${badgeColor}`}
+                    >
+                      <span className="text-[9px] font-bold text-slate-500 select-none tracking-tight pt-0.5 whitespace-nowrap">
+                        {date.toLocaleTimeString()}
+                      </span>
+                      <div className="flex flex-col gap-0.5">
+                        <p className="text-slate-200 font-semibold">{log.event}</p>
+                        {log.duration !== undefined && (
+                          <span className="text-[9px] text-slate-500 font-bold uppercase">
+                            Away for: {log.duration} seconds
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+          </div>
         </div>
       </div>
 

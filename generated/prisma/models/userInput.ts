@@ -31,6 +31,7 @@ export type UserInputAvgAggregateOutputType = {
   questionsCount: number | null
   yearsOfExperience: number | null
   userId: number | null
+  tabSwitchesCount: number | null
 }
 
 export type UserInputSumAggregateOutputType = {
@@ -38,6 +39,7 @@ export type UserInputSumAggregateOutputType = {
   questionsCount: number | null
   yearsOfExperience: number | null
   userId: number | null
+  tabSwitchesCount: number | null
 }
 
 export type UserInputMinAggregateOutputType = {
@@ -50,6 +52,9 @@ export type UserInputMinAggregateOutputType = {
   yearsOfExperience: number | null
   interviewType: $Enums.InterviewType | null
   userId: number | null
+  tabSwitchesCount: number | null
+  tabSwitchLogs: string | null
+  recordingUrl: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -64,6 +69,9 @@ export type UserInputMaxAggregateOutputType = {
   yearsOfExperience: number | null
   interviewType: $Enums.InterviewType | null
   userId: number | null
+  tabSwitchesCount: number | null
+  tabSwitchLogs: string | null
+  recordingUrl: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -80,6 +88,9 @@ export type UserInputCountAggregateOutputType = {
   interviewType: number
   questions: number
   userId: number
+  tabSwitchesCount: number
+  tabSwitchLogs: number
+  recordingUrl: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -91,6 +102,7 @@ export type UserInputAvgAggregateInputType = {
   questionsCount?: true
   yearsOfExperience?: true
   userId?: true
+  tabSwitchesCount?: true
 }
 
 export type UserInputSumAggregateInputType = {
@@ -98,6 +110,7 @@ export type UserInputSumAggregateInputType = {
   questionsCount?: true
   yearsOfExperience?: true
   userId?: true
+  tabSwitchesCount?: true
 }
 
 export type UserInputMinAggregateInputType = {
@@ -110,6 +123,9 @@ export type UserInputMinAggregateInputType = {
   yearsOfExperience?: true
   interviewType?: true
   userId?: true
+  tabSwitchesCount?: true
+  tabSwitchLogs?: true
+  recordingUrl?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -124,6 +140,9 @@ export type UserInputMaxAggregateInputType = {
   yearsOfExperience?: true
   interviewType?: true
   userId?: true
+  tabSwitchesCount?: true
+  tabSwitchLogs?: true
+  recordingUrl?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -140,6 +159,9 @@ export type UserInputCountAggregateInputType = {
   interviewType?: true
   questions?: true
   userId?: true
+  tabSwitchesCount?: true
+  tabSwitchLogs?: true
+  recordingUrl?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -243,6 +265,9 @@ export type UserInputGroupByOutputType = {
   interviewType: $Enums.InterviewType
   questions: string[]
   userId: number
+  tabSwitchesCount: number
+  tabSwitchLogs: string | null
+  recordingUrl: string | null
   createdAt: Date
   updatedAt: Date
   _count: UserInputCountAggregateOutputType | null
@@ -282,6 +307,9 @@ export type userInputWhereInput = {
   interviewType?: Prisma.EnumInterviewTypeFilter<"userInput"> | $Enums.InterviewType
   questions?: Prisma.StringNullableListFilter<"userInput">
   userId?: Prisma.IntFilter<"userInput"> | number
+  tabSwitchesCount?: Prisma.IntFilter<"userInput"> | number
+  tabSwitchLogs?: Prisma.StringNullableFilter<"userInput"> | string | null
+  recordingUrl?: Prisma.StringNullableFilter<"userInput"> | string | null
   createdAt?: Prisma.DateTimeFilter<"userInput"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"userInput"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -300,6 +328,9 @@ export type userInputOrderByWithRelationInput = {
   interviewType?: Prisma.SortOrder
   questions?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  tabSwitchesCount?: Prisma.SortOrder
+  tabSwitchLogs?: Prisma.SortOrderInput | Prisma.SortOrder
+  recordingUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
@@ -321,6 +352,9 @@ export type userInputWhereUniqueInput = Prisma.AtLeast<{
   interviewType?: Prisma.EnumInterviewTypeFilter<"userInput"> | $Enums.InterviewType
   questions?: Prisma.StringNullableListFilter<"userInput">
   userId?: Prisma.IntFilter<"userInput"> | number
+  tabSwitchesCount?: Prisma.IntFilter<"userInput"> | number
+  tabSwitchLogs?: Prisma.StringNullableFilter<"userInput"> | string | null
+  recordingUrl?: Prisma.StringNullableFilter<"userInput"> | string | null
   createdAt?: Prisma.DateTimeFilter<"userInput"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"userInput"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -339,6 +373,9 @@ export type userInputOrderByWithAggregationInput = {
   interviewType?: Prisma.SortOrder
   questions?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  tabSwitchesCount?: Prisma.SortOrder
+  tabSwitchLogs?: Prisma.SortOrderInput | Prisma.SortOrder
+  recordingUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.userInputCountOrderByAggregateInput
@@ -363,6 +400,9 @@ export type userInputScalarWhereWithAggregatesInput = {
   interviewType?: Prisma.EnumInterviewTypeWithAggregatesFilter<"userInput"> | $Enums.InterviewType
   questions?: Prisma.StringNullableListFilter<"userInput">
   userId?: Prisma.IntWithAggregatesFilter<"userInput"> | number
+  tabSwitchesCount?: Prisma.IntWithAggregatesFilter<"userInput"> | number
+  tabSwitchLogs?: Prisma.StringNullableWithAggregatesFilter<"userInput"> | string | null
+  recordingUrl?: Prisma.StringNullableWithAggregatesFilter<"userInput"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"userInput"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"userInput"> | Date | string
 }
@@ -377,6 +417,9 @@ export type userInputCreateInput = {
   yearsOfExperience?: number
   interviewType?: $Enums.InterviewType
   questions?: Prisma.userInputCreatequestionsInput | string[]
+  tabSwitchesCount?: number
+  tabSwitchLogs?: string | null
+  recordingUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutUserInputsInput
@@ -395,6 +438,9 @@ export type userInputUncheckedCreateInput = {
   interviewType?: $Enums.InterviewType
   questions?: Prisma.userInputCreatequestionsInput | string[]
   userId: number
+  tabSwitchesCount?: number
+  tabSwitchLogs?: string | null
+  recordingUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   answers?: Prisma.AnswersUncheckedCreateNestedManyWithoutUserInputInput
@@ -410,6 +456,9 @@ export type userInputUpdateInput = {
   yearsOfExperience?: Prisma.IntFieldUpdateOperationsInput | number
   interviewType?: Prisma.EnumInterviewTypeFieldUpdateOperationsInput | $Enums.InterviewType
   questions?: Prisma.userInputUpdatequestionsInput | string[]
+  tabSwitchesCount?: Prisma.IntFieldUpdateOperationsInput | number
+  tabSwitchLogs?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordingUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutUserInputsNestedInput
@@ -428,6 +477,9 @@ export type userInputUncheckedUpdateInput = {
   interviewType?: Prisma.EnumInterviewTypeFieldUpdateOperationsInput | $Enums.InterviewType
   questions?: Prisma.userInputUpdatequestionsInput | string[]
   userId?: Prisma.IntFieldUpdateOperationsInput | number
+  tabSwitchesCount?: Prisma.IntFieldUpdateOperationsInput | number
+  tabSwitchLogs?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordingUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   answers?: Prisma.AnswersUncheckedUpdateManyWithoutUserInputNestedInput
@@ -445,6 +497,9 @@ export type userInputCreateManyInput = {
   interviewType?: $Enums.InterviewType
   questions?: Prisma.userInputCreatequestionsInput | string[]
   userId: number
+  tabSwitchesCount?: number
+  tabSwitchLogs?: string | null
+  recordingUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -459,6 +514,9 @@ export type userInputUpdateManyMutationInput = {
   yearsOfExperience?: Prisma.IntFieldUpdateOperationsInput | number
   interviewType?: Prisma.EnumInterviewTypeFieldUpdateOperationsInput | $Enums.InterviewType
   questions?: Prisma.userInputUpdatequestionsInput | string[]
+  tabSwitchesCount?: Prisma.IntFieldUpdateOperationsInput | number
+  tabSwitchLogs?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordingUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -475,6 +533,9 @@ export type userInputUncheckedUpdateManyInput = {
   interviewType?: Prisma.EnumInterviewTypeFieldUpdateOperationsInput | $Enums.InterviewType
   questions?: Prisma.userInputUpdatequestionsInput | string[]
   userId?: Prisma.IntFieldUpdateOperationsInput | number
+  tabSwitchesCount?: Prisma.IntFieldUpdateOperationsInput | number
+  tabSwitchLogs?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordingUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -501,6 +562,9 @@ export type userInputCountOrderByAggregateInput = {
   interviewType?: Prisma.SortOrder
   questions?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  tabSwitchesCount?: Prisma.SortOrder
+  tabSwitchLogs?: Prisma.SortOrder
+  recordingUrl?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -510,6 +574,7 @@ export type userInputAvgOrderByAggregateInput = {
   questionsCount?: Prisma.SortOrder
   yearsOfExperience?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  tabSwitchesCount?: Prisma.SortOrder
 }
 
 export type userInputMaxOrderByAggregateInput = {
@@ -522,6 +587,9 @@ export type userInputMaxOrderByAggregateInput = {
   yearsOfExperience?: Prisma.SortOrder
   interviewType?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  tabSwitchesCount?: Prisma.SortOrder
+  tabSwitchLogs?: Prisma.SortOrder
+  recordingUrl?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -536,6 +604,9 @@ export type userInputMinOrderByAggregateInput = {
   yearsOfExperience?: Prisma.SortOrder
   interviewType?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  tabSwitchesCount?: Prisma.SortOrder
+  tabSwitchLogs?: Prisma.SortOrder
+  recordingUrl?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -545,6 +616,7 @@ export type userInputSumOrderByAggregateInput = {
   questionsCount?: Prisma.SortOrder
   yearsOfExperience?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  tabSwitchesCount?: Prisma.SortOrder
 }
 
 export type UserInputScalarRelationFilter = {
@@ -644,6 +716,9 @@ export type userInputCreateWithoutUserInput = {
   yearsOfExperience?: number
   interviewType?: $Enums.InterviewType
   questions?: Prisma.userInputCreatequestionsInput | string[]
+  tabSwitchesCount?: number
+  tabSwitchLogs?: string | null
+  recordingUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   answers?: Prisma.AnswersCreateNestedManyWithoutUserInputInput
@@ -660,6 +735,9 @@ export type userInputUncheckedCreateWithoutUserInput = {
   yearsOfExperience?: number
   interviewType?: $Enums.InterviewType
   questions?: Prisma.userInputCreatequestionsInput | string[]
+  tabSwitchesCount?: number
+  tabSwitchLogs?: string | null
+  recordingUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   answers?: Prisma.AnswersUncheckedCreateNestedManyWithoutUserInputInput
@@ -706,6 +784,9 @@ export type userInputScalarWhereInput = {
   interviewType?: Prisma.EnumInterviewTypeFilter<"userInput"> | $Enums.InterviewType
   questions?: Prisma.StringNullableListFilter<"userInput">
   userId?: Prisma.IntFilter<"userInput"> | number
+  tabSwitchesCount?: Prisma.IntFilter<"userInput"> | number
+  tabSwitchLogs?: Prisma.StringNullableFilter<"userInput"> | string | null
+  recordingUrl?: Prisma.StringNullableFilter<"userInput"> | string | null
   createdAt?: Prisma.DateTimeFilter<"userInput"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"userInput"> | Date | string
 }
@@ -720,6 +801,9 @@ export type userInputCreateWithoutAnswersInput = {
   yearsOfExperience?: number
   interviewType?: $Enums.InterviewType
   questions?: Prisma.userInputCreatequestionsInput | string[]
+  tabSwitchesCount?: number
+  tabSwitchLogs?: string | null
+  recordingUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutUserInputsInput
@@ -737,6 +821,9 @@ export type userInputUncheckedCreateWithoutAnswersInput = {
   interviewType?: $Enums.InterviewType
   questions?: Prisma.userInputCreatequestionsInput | string[]
   userId: number
+  tabSwitchesCount?: number
+  tabSwitchLogs?: string | null
+  recordingUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -767,6 +854,9 @@ export type userInputUpdateWithoutAnswersInput = {
   yearsOfExperience?: Prisma.IntFieldUpdateOperationsInput | number
   interviewType?: Prisma.EnumInterviewTypeFieldUpdateOperationsInput | $Enums.InterviewType
   questions?: Prisma.userInputUpdatequestionsInput | string[]
+  tabSwitchesCount?: Prisma.IntFieldUpdateOperationsInput | number
+  tabSwitchLogs?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordingUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutUserInputsNestedInput
@@ -784,6 +874,9 @@ export type userInputUncheckedUpdateWithoutAnswersInput = {
   interviewType?: Prisma.EnumInterviewTypeFieldUpdateOperationsInput | $Enums.InterviewType
   questions?: Prisma.userInputUpdatequestionsInput | string[]
   userId?: Prisma.IntFieldUpdateOperationsInput | number
+  tabSwitchesCount?: Prisma.IntFieldUpdateOperationsInput | number
+  tabSwitchLogs?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordingUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -799,6 +892,9 @@ export type userInputCreateManyUserInput = {
   yearsOfExperience?: number
   interviewType?: $Enums.InterviewType
   questions?: Prisma.userInputCreatequestionsInput | string[]
+  tabSwitchesCount?: number
+  tabSwitchLogs?: string | null
+  recordingUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -813,6 +909,9 @@ export type userInputUpdateWithoutUserInput = {
   yearsOfExperience?: Prisma.IntFieldUpdateOperationsInput | number
   interviewType?: Prisma.EnumInterviewTypeFieldUpdateOperationsInput | $Enums.InterviewType
   questions?: Prisma.userInputUpdatequestionsInput | string[]
+  tabSwitchesCount?: Prisma.IntFieldUpdateOperationsInput | number
+  tabSwitchLogs?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordingUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   answers?: Prisma.AnswersUpdateManyWithoutUserInputNestedInput
@@ -829,6 +928,9 @@ export type userInputUncheckedUpdateWithoutUserInput = {
   yearsOfExperience?: Prisma.IntFieldUpdateOperationsInput | number
   interviewType?: Prisma.EnumInterviewTypeFieldUpdateOperationsInput | $Enums.InterviewType
   questions?: Prisma.userInputUpdatequestionsInput | string[]
+  tabSwitchesCount?: Prisma.IntFieldUpdateOperationsInput | number
+  tabSwitchLogs?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordingUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   answers?: Prisma.AnswersUncheckedUpdateManyWithoutUserInputNestedInput
@@ -845,6 +947,9 @@ export type userInputUncheckedUpdateManyWithoutUserInput = {
   yearsOfExperience?: Prisma.IntFieldUpdateOperationsInput | number
   interviewType?: Prisma.EnumInterviewTypeFieldUpdateOperationsInput | $Enums.InterviewType
   questions?: Prisma.userInputUpdatequestionsInput | string[]
+  tabSwitchesCount?: Prisma.IntFieldUpdateOperationsInput | number
+  tabSwitchLogs?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordingUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -892,6 +997,9 @@ export type userInputSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   interviewType?: boolean
   questions?: boolean
   userId?: boolean
+  tabSwitchesCount?: boolean
+  tabSwitchLogs?: boolean
+  recordingUrl?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -911,6 +1019,9 @@ export type userInputSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   interviewType?: boolean
   questions?: boolean
   userId?: boolean
+  tabSwitchesCount?: boolean
+  tabSwitchLogs?: boolean
+  recordingUrl?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -928,6 +1039,9 @@ export type userInputSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   interviewType?: boolean
   questions?: boolean
   userId?: boolean
+  tabSwitchesCount?: boolean
+  tabSwitchLogs?: boolean
+  recordingUrl?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -945,11 +1059,14 @@ export type userInputSelectScalar = {
   interviewType?: boolean
   questions?: boolean
   userId?: boolean
+  tabSwitchesCount?: boolean
+  tabSwitchLogs?: boolean
+  recordingUrl?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type userInputOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "jobTitle" | "companyName" | "questionsCount" | "techStack" | "role" | "difficulty" | "yearsOfExperience" | "interviewType" | "questions" | "userId" | "createdAt" | "updatedAt", ExtArgs["result"]["userInput"]>
+export type userInputOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "jobTitle" | "companyName" | "questionsCount" | "techStack" | "role" | "difficulty" | "yearsOfExperience" | "interviewType" | "questions" | "userId" | "tabSwitchesCount" | "tabSwitchLogs" | "recordingUrl" | "createdAt" | "updatedAt", ExtArgs["result"]["userInput"]>
 export type userInputInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   answers?: boolean | Prisma.userInput$answersArgs<ExtArgs>
@@ -980,6 +1097,9 @@ export type $userInputPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     interviewType: $Enums.InterviewType
     questions: string[]
     userId: number
+    tabSwitchesCount: number
+    tabSwitchLogs: string | null
+    recordingUrl: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["userInput"]>
@@ -1418,6 +1538,9 @@ export interface userInputFieldRefs {
   readonly interviewType: Prisma.FieldRef<"userInput", 'InterviewType'>
   readonly questions: Prisma.FieldRef<"userInput", 'String[]'>
   readonly userId: Prisma.FieldRef<"userInput", 'Int'>
+  readonly tabSwitchesCount: Prisma.FieldRef<"userInput", 'Int'>
+  readonly tabSwitchLogs: Prisma.FieldRef<"userInput", 'String'>
+  readonly recordingUrl: Prisma.FieldRef<"userInput", 'String'>
   readonly createdAt: Prisma.FieldRef<"userInput", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"userInput", 'DateTime'>
 }

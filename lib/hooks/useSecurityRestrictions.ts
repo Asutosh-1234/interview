@@ -3,7 +3,7 @@ import { useEffect } from "react";
 export function useSecurityRestrictions(
   isEnabled: boolean,
   onViolation: (message: string) => void,
-  onTabSwitch?: () => void
+  onTabSwitch?: (state: "hidden" | "visible") => void
 ) {
   useEffect(() => {
     if (!isEnabled) return;
@@ -36,8 +36,8 @@ export function useSecurityRestrictions(
     };
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === "hidden" && onTabSwitch) {
-        onTabSwitch();
+      if (onTabSwitch) {
+        onTabSwitch(document.visibilityState as "hidden" | "visible");
       }
     };
 

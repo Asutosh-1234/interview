@@ -701,6 +701,9 @@ export const UserInputScalarFieldEnum = {
   interviewType: 'interviewType',
   questions: 'questions',
   userId: 'userId',
+  tabSwitchesCount: 'tabSwitchesCount',
+  tabSwitchLogs: 'tabSwitchLogs',
+  recordingUrl: 'recordingUrl',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

@@ -40,13 +40,19 @@ export const InterviewContainer: React.FC<InterviewContainerProps> = ({ setup })
     handleSubmitAnswer,
     handleSkip,
     handleEndInterview,
+    screenShareState,
+    screenShareError,
+    isUploadingRecording,
+    startScreenRecording,
+    resumeScreenRecording,
   } = useInterviewSessionState(setup);
 
   const wordCount = answer.trim() === "" ? 0 : answer.trim().split(/\s+/).length;
   const isQuestionLoaded = currentQuestionText.length > 0;
 
   return (
-    <div className="w-full max-w-[800px] glass-panel rounded-xl p-8 md:p-12 shadow-2xl z-10 flex flex-col gap-6 animate-slide-in">
+    <>
+      <div className="w-full max-w-[800px] glass-panel rounded-xl p-8 md:p-12 shadow-2xl z-10 flex flex-col gap-6 animate-slide-in">
       {/* Header Info */}
       <div className="flex flex-col gap-4 border-b border-slate-850 dark:border-slate-800/80 pb-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
@@ -64,11 +70,21 @@ export const InterviewContainer: React.FC<InterviewContainerProps> = ({ setup })
             )}
           </div>
           <div className="flex flex-col items-end gap-2 text-right">
-            <div className="inline-flex items-center gap-2 px-3 py-1 border border-slate-850 dark:border-slate-800/85 rounded-full select-none">
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-100 animate-pulse"></span>
-              <span className="text-[10px] font-bold text-slate-200 tracking-wider uppercase">
-                {setup.interviewType}
-              </span>
+            <div className="flex gap-2">
+              {screenShareState === 'recording' && (
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 border border-red-500/25 bg-red-500/5 rounded-full select-none">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                  <span className="text-[10px] font-bold text-red-400 tracking-wider uppercase">
+                    PROCTORING ACTIVE
+                  </span>
+                </div>
+              )}
+              <div className="inline-flex items-center gap-2 px-3 py-1 border border-slate-850 dark:border-slate-800/85 rounded-full select-none">
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-100 animate-pulse"></span>
+                <span className="text-[10px] font-bold text-slate-200 tracking-wider uppercase">
+                  {setup.interviewType}
+                </span>
+              </div>
             </div>
             {setup.timerDuration > 0 && !isStreaming && !isSubmitting && (
               <span className={`px-2.5 py-1 text-xs font-semibold border rounded-lg flex items-center gap-1.5 ${
@@ -217,5 +233,94 @@ export const InterviewContainer: React.FC<InterviewContainerProps> = ({ setup })
         </div>
       )}
     </div>
+
+      {/* Proctoring Consent Overlay */}
+      {screenShareState !== 'recording' && screenShareState !== 'stopped' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-6">
+          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-xl p-8 shadow-2xl flex flex-col gap-6 select-none animate-slide-in">
+            <div className="text-center flex flex-col items-center gap-3 border-b border-slate-800 pb-4">
+              <div className="w-16 h-16 rounded-full bg-slate-800/50 flex items-center justify-center border border-slate-700">
+                <svg className="w-8 h-8 text-slate-100 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold tracking-tight text-slate-100">AI Proctoring Setup</h2>
+              <p className="text-xs text-slate-400">This interview session is proctored to ensure integrity. Screen recording is mandatory.</p>
+            </div>
+
+            <div className="flex flex-col gap-3 bg-slate-950/50 p-4 rounded-lg border border-slate-850">
+              <div className="flex items-start gap-2.5">
+                <span className="text-emerald-400 font-bold text-xs mt-0.5">✓</span>
+                <p className="text-[11px] text-slate-350 leading-normal">
+                  <strong>Screen Recording:</strong> Captures the active window / screen. Only used for review.
+                </p>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <span className="text-emerald-400 font-bold text-xs mt-0.5">✓</span>
+                <p className="text-[11px] text-slate-350 leading-normal">
+                  <strong>Tab Detection:</strong> Switching tabs or windows is logged. 3 warnings allowed.
+                </p>
+              </div>
+            </div>
+
+            {screenShareError && (
+              <div className="text-xs bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-lg text-center font-medium leading-relaxed">
+                {screenShareError}
+              </div>
+            )}
+
+            <button
+              onClick={startScreenRecording}
+              disabled={screenShareState === 'prompt'}
+              className="w-full h-12 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-950 font-bold rounded-lg text-xs uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-2"
+            >
+              {screenShareState === 'prompt' ? (
+                <>
+                  <span className="w-3.5 h-3.5 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
+                  Waiting for permission...
+                </>
+              ) : (
+                "Grant & Start Interview"
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Screen Sharing Interrupted Overlay */}
+      {screenShareState === 'stopped' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-6">
+          <div className="w-full max-w-md bg-slate-900 border border-red-500/30 rounded-xl p-8 shadow-2xl flex flex-col gap-6 select-none animate-slide-in">
+            <div className="text-center flex flex-col items-center gap-3 border-b border-slate-805 pb-4">
+              <div className="w-16 h-16 rounded-full bg-red-950/40 border border-red-500/40 flex items-center justify-center">
+                <svg className="w-8 h-8 text-red-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold tracking-tight text-red-450">Proctoring Interrupted</h2>
+              <p className="text-xs text-slate-400">Screen sharing was disconnected. Please restore permissions immediately to continue the interview.</p>
+            </div>
+
+            <button
+              onClick={resumeScreenRecording}
+              className="w-full h-12 bg-red-500 hover:bg-red-650 text-white font-bold rounded-lg text-xs uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-2"
+            >
+              Resume Screen Sharing
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Uploading Recording Overlay */}
+      {isUploadingRecording && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-6">
+          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-xl p-8 shadow-2xl flex flex-col gap-6 items-center justify-center text-center select-none">
+            <span className="w-10 h-10 border-4 border-slate-800 border-t-slate-200 rounded-full animate-spin" />
+            <h3 className="text-lg font-bold text-slate-100">Saving Session</h3>
+            <p className="text-xs text-slate-450">Uploading screen proctoring footage to the server. Please do not close this window...</p>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
